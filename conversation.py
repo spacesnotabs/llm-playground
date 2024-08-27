@@ -1,15 +1,16 @@
 import json
 from datetime import datetime
 
-from message import Message
+from basicmessage import BasicMessage
 
-
+SYSTEM_ROLE = "system"
 USER_ROLE = "user"
 ASSIST_ROLE = "assistant"
 
+
 class Conversation:
     def __init__(self):
-        self._history: list[Message] = []
+        self._history: list[BasicMessage] = []
         self._system_prompt: str | None = None
         self._num_words: int = 0
         self._num_tokens: int = 0
@@ -38,13 +39,18 @@ class Conversation:
     def num_tokens(self, count: int) -> None:
         self._num_tokens = count
 
+    def add_system_message(self, content: str):
+        msg = BasicMessage(SYSTEM_ROLE, content)
+        self.num_words += len(content.split())
+        self._history.append(msg)
+
     def add_user_message(self, content: str):
-        msg = Message(USER_ROLE, content)
+        msg = BasicMessage(USER_ROLE, content)
         self.num_words += len(content.split())
         self._history.append(msg)
 
     def add_assistant_message(self, content: str):
-        msg = Message(ASSIST_ROLE, content)
+        msg = BasicMessage(ASSIST_ROLE, content)
         self.num_words += len(content.split())
         self._history.append(msg)
 
@@ -57,3 +63,9 @@ class Conversation:
         with open(filename, 'w') as output_file:
             for message in self._history:
                 output_file.write(json.dumps(message.to_dict()))
+
+    def clear_conversation(self, save: bool = False) -> None:
+        if save:
+            self.save_conversation(desc='auto_save')
+
+        self._history.clear()

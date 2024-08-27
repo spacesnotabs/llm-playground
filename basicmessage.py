@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Message:
+class BasicMessage:
     role: str
     content: str
 
