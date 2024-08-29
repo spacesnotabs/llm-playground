@@ -1,13 +1,14 @@
 from pathlib import Path
 
-from .base_agent import BaseAgent
-from .agent_settings import AgentSettings
+from .base_model import BaseModel
+from .model_settings import ModelSettings
 import time
+from tools.file_tools import mistral_tools
 
 from llama_cpp import Llama
 
-class MistralAgent(BaseAgent):
-    def __init__(self, model_dir: Path, settings: AgentSettings):
+class LlamaModel(BaseModel):
+    def __init__(self, model_dir: Path, settings: ModelSettings):
         super().__init__(settings=settings)
 
         self._model = Llama(model_path=str(model_dir),
@@ -18,16 +19,6 @@ class MistralAgent(BaseAgent):
                             n_threads=256,
                             n_threads_batch=256,
                             n_ctx=32000)
-
-    def initialize(self) -> None:
-        """
-        Start the chatbot by sending the initial prompt to it.
-        :return: None
-        """
-        response = self._send_prompt()  # send the initial prompt
-        self._conversation.add_assistant_message(response)
-        self._input_message = None
-
 
     def send_message(self, contents: str) -> None:
         """
@@ -40,9 +31,14 @@ class MistralAgent(BaseAgent):
             messages=self._conversation.construct_api_message(),
             max_tokens=self._settings.max_tokens,  # Limit the length of the output
             temperature=self._settings.temperature,  # Control the creativity of the model (0.0-1.0)
+            tools=mistral_tools,
+            tool_choice="required"
             # top_p=0.9  # Use nucleus sampling to limit the highest-probability tokens
         )
 
+        print(response)
+        finish_reason = response['choices'][0]['finish_reason'] # can be 'length', 'stop',
+        print(finish_reason)
         response_text = response['choices'][0]['message']['content']
         self.conversation.add_system_message(response_text)
 

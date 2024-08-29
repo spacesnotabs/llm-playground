@@ -2,29 +2,13 @@ import json
 
 import colorama
 
-from agents.agent_settings import AgentSettings, AgentType
-from agents.anthropic_agent import AnthropicAgent
-from agents.mistral_agent import MistralAgent
+from models.model_settings import ModelSettings, ModelType
+from models.anthropic_model import AnthropicModel
+from models.mistral_model import MistralModel
+from model_controller import ModelController
+from models.gemini_model import GeminiModel
 
-
-def tool_email(contents: str) -> None:
-    print("Email sent: ", contents)
-
-
-email_tool = {
-    "name": "email",
-    "description": "Sends an email with the contents",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "contents": {
-                "type": "string",
-                "description": "The contents of the email"
-            }
-        },
-        "required": ["contents"]
-    }
-}
+from pathlib import Path
 
 colorama.init()
 
@@ -46,21 +30,37 @@ if __name__ == "__main__":
     anthropic_api = config['llm_apis']['anthropic']['api_key']
     gemini_api = config['llm_apis']['gemini']['api_key']
 
-    llm_agent_settings = AgentSettings(
-        agent_name="Anthropic",
-        agent_type=AgentType.ANTHROPIC_AGENT,
-        temperature=1.0,
-        api_key=anthropic_api,
-        model_name=AnthropicAgent.MODEL_SONNET_3_5,
-        max_tokens=1000)
+    # llm_agent_settings = AgentSettings(
+    #     agent_name="Anthropic",
+    #     agent_type=AgentType.ANTHROPIC_AGENT,
+    #     temperature=1.0,
+    #     api_key=anthropic_api,
+    #     model_name=AnthropicAgent.MODEL_SONNET_3_5,
+    #     max_tokens=1000)
+    #
+    # llm = AnthropicAgent(settings=llm_agent_settings, api_key=anthropic_api)
+    #
+    # llm = AgentController.create_agent(agent_type=AgentType.LLAMA_AGENT,
+    #                                          agent_name="Llama",
+    #                                          model_name="Meta-Llama-3.1-8B-Instruct.Q8_0.gguf",
+    #                                          model_dir=Path.cwd().joinpath("local_models", "llama3", "Llama-31-8B-GGUF", "Meta-Llama-3.1-8B-Instruct.Q8_0.gguf")
+    #                                          )
 
-    llm_agent = AnthropicAgent(settings=llm_agent_settings, api_key=anthropic_api)
+    # llm = AgentController.create_agent(agent_type=AgentType.MISTRAL_AGENT,
+    #                                          agent_name="Mistral",
+    #                                          model_name="Mistral 7B",
+    #                                          model_dir=Path.cwd().joinpath("local_models", "mistral_models", "Mistral-7B-Instruct-v0.3-GGUF", "Mistral-7B-Instruct-v0.3.Q2_K.gguf"))
 
-    llm_agent.set_callback(agent_response_handler)
+    llm = ModelController.create_model(model_type=ModelType.GEMINI,
+                                             model_name="Gemini",
+                                             model_id=GeminiModel.MODEL_FLASH,
+                                             api_key=gemini_api)
+
+    llm.set_callback(agent_response_handler)
 
     while True:
         user_input = input("Prompt: ")
         if user_input.lower() == "quit":
             break
         else:
-            llm_agent.send_message(user_input)
+            llm.send_message(user_input)

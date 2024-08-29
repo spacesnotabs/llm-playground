@@ -1,12 +1,12 @@
 from threading import Thread
 
-from .agent_settings import AgentSettings
+from .model_settings import ModelSettings
 from conversation import Conversation
 
 
-class BaseAgent:
-    def __init__(self, settings: AgentSettings):
-        self._settings: AgentSettings = settings
+class BaseModel:
+    def __init__(self, settings: ModelSettings):
+        self._settings: ModelSettings = settings
         self._conversation: Conversation | None = None
         self._run_thread: Thread | None = None
         self._stop: bool = False
@@ -47,7 +47,7 @@ class BaseAgent:
         if not self._conversation:
             self._conversation = conversation
         else:
-            self._conversation.save_conversation(self._settings.agent_name)
+            self._conversation.save_conversation(self._settings.model_name)
             self._conversation = Conversation()
 
     def set_callback(self, func) -> None:
@@ -55,12 +55,20 @@ class BaseAgent:
 
     def send_message(self, contents: str) -> None:
         pass
+
     def initialize(self) -> None:
         """
         Start the chatbot by sending the initial prompt to it.
         :return: None
         """
         pass
+
+    def clear_conversation(self) -> None:
+        """
+        Clears the conversation history
+        :return:
+        """
+        self.conversation.clear_conversation(save=True)
 
     def _create_conversation(self) -> None:
         self.conversation = Conversation()
