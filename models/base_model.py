@@ -53,7 +53,7 @@ class BaseModel:
     def set_callback(self, func) -> None:
         self._response_callback = func
 
-    def send_message(self, contents: str) -> None:
+    def send_message(self, contents: str) -> str:
         pass
 
     def initialize(self) -> None:
