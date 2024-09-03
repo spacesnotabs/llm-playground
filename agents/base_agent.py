@@ -25,31 +25,6 @@ class BaseAgent:
     def active_task_id(self) -> int:
         return self._active_task_idx
 
-    def process_all_tasks(self) -> None:
-        num_tasks = len(self._task_list)
-        if num_tasks == 0:
-            print("No tasks in task list.")
-            return
-
-        while True:
-            print("Running task ", self._active_task_idx)
-            task = self._task_list[self._active_task_idx]
-            results = self.run_task(task)
-
-            if task.output_target == OutputTarget.USER:
-                print("Task target is USER.")
-                if self._response_handler:
-                    self._response_handler(results)
-            elif task.output_target == OutputTarget.NEXT_TASK:
-                print("Task target is next task.")
-                self._task_list[self._active_task_idx + 1].instruction = results
-
-            self._active_task_idx += 1
-            if self._active_task_idx == num_tasks:
-                break
-
-        print("Completed all tasks.")
-
     def run_task(self, task: AgentTask, task_input: str) -> str:
         """
         Runs the task with the specified input data
