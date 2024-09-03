@@ -32,14 +32,17 @@ class TaskFlow:
 
     def run_task_loop(self, agent: BaseAgent, task: AgentTask, task_input: str) -> str:
         timeout = 5 # safety mechanism, timeout after 5 loops
-        while timeout > 0:
+        exit_loop = False
+        while timeout > 0 and not exit_loop:
             timeout -= 1
             for subtask in task.subtasks:
                 task_input = self.run_task(agent=agent, task=subtask, task_input=task_input)
                 sleep(5)
-            if task.loop_exit in task_input:
-                print("Loop exit found!")
-                break
+
+                if task.loop_exit in task_input:
+                    print(f"Loop exit {task.loop_exit} found in {task_input}")
+                    exit_loop = True
+                    break
 
         return task_input
 
@@ -61,12 +64,13 @@ class TaskFlow:
 
         task_output = ""
         for task in self._tasks:
+            task_input = task_output
             if task.exec_type == ExecType.SINGLE:
-                task_output = self.run_task(agent=agent, task=task, task_input=task_output)
+                task_output = self.run_task(agent=agent, task=task, task_input=task_input)
             elif task.exec_type == ExecType.LOOP:
-                task_output = self.run_task_loop(agent=agent, task=task, task_input=task_output)
+                task_output = self.run_task_loop(agent=agent, task=task, task_input=task_input)
             elif task.exec_type == ExecType.CONDITIONAL:
-                task_output = self.run_task_cond(agent=agent, task=task, task_input=task_output)
+                task_output = self.run_task_cond(agent=agent, task=task, task_input=task_input)
 
         if self._debug:
             print('returning output ', task_output)
@@ -79,3 +83,4 @@ class TaskFlow:
 
     def add_agent(self, agent: BaseAgent) -> None:
         self._agents.append(agent)
+
