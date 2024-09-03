@@ -11,20 +11,27 @@ class GeminiModel(BaseModel):
     MODEL_FLASH = "gemini-1.5-flash"
     MODEL_PRO = "gemini-1.5-pro"
 
-    def __init__(self, api_key: str, settings: ModelSettings):
+    def __init__(self, settings: ModelSettings):
         super().__init__(settings=settings)
+        self._model: genai.GenerativeModel | None = None
+        self._chat: genai.ChatSession | None = None
 
+    def initialize(self) -> None:
         config = genai.types.GenerationConfig(
             candidate_count=1,
             max_output_tokens=self._settings.max_tokens,
             temperature=self._settings.temperature
         )
 
-        genai.configure(api_key=api_key)
+        genai.configure(api_key=self._settings.api_key)
         self._model = genai.GenerativeModel(model_name=self._settings.model_id,
                                             generation_config=config,
-                                            tools=[read_file, write_file])
-        self._chat = self._model.start_chat(history=[], enable_automatic_function_calling=True)
+                                            system_instruction=self.system_prompt)
+
+        try:
+            self._chat = self._model.start_chat(history=[])
+        except Exception as e:
+            print("Unable to create Gemini model due to exception: ", e)
 
     def send_message(self, contents: str) -> str:
         """
@@ -34,8 +41,13 @@ class GeminiModel(BaseModel):
         """
         self.conversation.add_user_message(contents)
 
-        response = self._chat.send_message(contents)
-        print(response)
+        try:
+            response = self._chat.send_message(contents)
+        except Exception as e:
+            print("Gemini failed with exception: ", e)
+            return ""
+
+        # print(response)
 
         self.conversation.add_system_message(response.text)
 

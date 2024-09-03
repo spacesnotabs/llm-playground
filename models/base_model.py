@@ -17,6 +17,10 @@ class BaseModel:
         self._initial_prompt: str | None = None
 
     @property
+    def model_name(self) -> str:
+        return self._settings.model_name
+
+    @property
     def conversation(self) -> Conversation:
         return self._conversation
 

@@ -12,8 +12,9 @@ class ModelController:
         self._agents: list[BaseModel] = []
 
     @staticmethod
-    def create_model(model_type: ModelType, model_name: str, model_id: str, api_key: str | None = None, model_dir: Path | None = None) -> BaseModel | None:
-        model = None
+    def create_model(model_type: ModelType, model_name: str, model_id: str, api_key: str | None = None,
+                     model_dir: Path | None = None) -> BaseModel | None:
+        model: BaseModel | None = None
         if model_type == ModelType.ANTHROPIC:
             settings = ModelSettings(
                 api_key=api_key,
@@ -54,7 +55,7 @@ class ModelController:
                 max_tokens=2000,
                 temperature=1.0
             )
-            model = GeminiModel(api_key=api_key, settings=settings)
+            model = GeminiModel(settings=settings)
         else:
             print(f"No model of type {model_type} found.")
 

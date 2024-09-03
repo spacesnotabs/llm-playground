@@ -4,3 +4,4 @@ local_models/
 __pycache__/
 credentials.json
 conversations/
+email_credentials.json
