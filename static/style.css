@@ -1,0 +1,19 @@
+<style>
+    .chat-container {
+        height: 400px;
+        overflow-y: auto;
+    }
+    .message {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+    .user-message {
+        background-color: #e9ecef; /* Light gray */
+        text-align: right;
+    }
+    .agent-message {
+        background-color: #aed6f1; /* Light blue */
+        text-align: left;
+    }
+</style>

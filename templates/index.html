@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Interface</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
+    <link rel="stylesheet" href="/static/style.css" />
+
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Agent System</h1>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Chat</h2>
+                <div class="form-group">
+                    <label for="model-select">Select Model:</label>
+                    <select class="form-control" id="model-select">
+                        {% for model_name in models %}
+                            <option value="{{ model_name }}">{{ model_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="chat-container" id="chat-output">
+                    </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="user-input" placeholder="Enter message...">
+                </div>
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                <button class="btn btn-secondary" onclick="clearChat()">Clear</button>
+            </div>
+
+            <div class="col-md-6">
+                <h2>Task Flow</h2>
+                <div id="task-flow-container">
+                    <!-- Task flow elements will be added here -->
+                </div>
+                <button class="btn btn-success" onclick="createTaskFlow()">Create Task Flow</button>
+                <button class="btn btn-info" onclick="runTaskFlow()">Run Task Flow</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+
+    <script src="/static/script.js" ></script>
+</body>
+</html>
