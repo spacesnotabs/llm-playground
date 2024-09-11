@@ -19,12 +19,12 @@ if __name__ == "__main__":
         config = json.load(f)
 
     # Usage example
-    yaml_file = 'prompts.yaml'
 
     openai_api = config['llm_apis']['openai']['api_key']
     anthropic_api = config['llm_apis']['anthropic']['api_key']
     gemini_api = config['llm_apis']['gemini']['api_key']
 
+    yaml_file = 'prompts.yaml'
     write_code_prompt = load_prompt(yaml_file=yaml_file, prompt_name='write_code')
     review_code_prompt = load_prompt(yaml_file=yaml_file, prompt_name="code_review")
     sw_arch_prompt = load_prompt(yaml_file=yaml_file, prompt_name="sw_architect")
@@ -100,9 +100,15 @@ if __name__ == "__main__":
 
     elif args.mode == "code_mode":
         filepath = input("What file should I modify? ").strip()
+        context= input("Any other files to use as context? ")
         instructions = input("What's your objective? ").strip()
 
         prompt = {"prompt": instructions.strip(), "path": filepath}
+
+        if context != "":
+            context_files = [filepath for filepath in context.split(',')]
+            prompt["context-files"] = context_files
+
         response = code_agent.run_agent(agent_input=prompt)
 
         code_output = extract_content(response["response"].strip(), "CODE")

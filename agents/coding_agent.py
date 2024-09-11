@@ -1,4 +1,3 @@
-
 from agents.base_agent import BaseAgent
 from models.base_model import BaseModel
 from tools.file_tools import *
@@ -9,6 +8,12 @@ class CodingAgent(BaseAgent):
         "type": "object",
         "properties": {
             "prompt": {"type": "string"},
+            "context-files": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                }
+            },
             "path": {"type": "string"},
             "architecture": {"type": "string"}
         },
@@ -32,16 +37,36 @@ class CodingAgent(BaseAgent):
         if not self.validate_input(agent_input=agent_input, schema=self.input_schema):
             return {"error": "Invalid input data."}
 
-        prompt = agent_input["prompt"]
+        prompt = ""
+
+        # add context data to the prompt
+        if agent_input.get("context-files", None):
+            prompt += "<context>"
+            for filepath in agent_input["context-files"]:
+                if os.path.exists(filepath):
+                    file_contents = read_file(filepath)
+                    prompt += f"\n{file_contents}\n"
+            prompt += "</context>"
+
+        # add architecture if available
         if agent_input.get("architecture", None):
             architecture = read_file(agent_input["architecture"])
             desc = agent_input["prompt"]
-            prompt = f"\nYou are working with code as part of a larger project.  The description of the piece you are working on is '{desc}'. Below is the architecture of the project you are working on which will inform how you write or modify this particular piece:\n" + architecture
+            prompt += f"\nYou are working with code as part of a larger project.  The description of the piece you are working on is '{desc}'."
+            prompt += "Below is the architecture of the project in which you are working."
+            prompt += f"<architecture>{architecture}</architecture>"
 
+        # add existing source code if available
         if agent_input.get("path", None):
             if os.path.exists(agent_input["path"]):
                 existing_code = read_file(agent_input["path"])
-                prompt += f"\nHere is the code to modify: {existing_code}"
+                prompt += f"\nHere is the code to modify: <code>{existing_code}</code>"
+
+        # finally, add the user's request
+        prompt += agent_input["prompt"]
+
+        print("Coding Agent Input Prompt:")
+        print(prompt)
 
         response = self._llm.send_message(prompt)
 
