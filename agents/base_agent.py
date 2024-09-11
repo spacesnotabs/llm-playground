@@ -1,49 +1,85 @@
-from abc import abstractmethod
+from threading import Thread
+from time import sleep
+from typing import Callable
 
-from agents.agent_task import AgentTask, TaskType, OutputTarget
+from jsonschema import validate, ValidationError
+from enum import Enum
 
 from models.base_model import BaseModel
 
+class AgentState(Enum):
+    IDLE = 0
+    PROCESSING = 1
+    WAITING_FOR_USER = 2
 
 class BaseAgent:
-    def __init__(self, name):
+    def __init__(self, name: str, llm: BaseModel | None = None):
         self._name: str = name
-        self._response_handler = None
-        self._llm: BaseModel | None = None
-        self._task_list: list[AgentTask] = []
-        self._active_task_idx: int = 0
+        self._llm: BaseModel = llm
+        self._agent_state = AgentState.IDLE
+        self._user_input_thread: Thread | None = None
+        self._user_input: dict | None = None
+        self._send_user_message_callback: Callable[[str], None] | None = None
 
     @property
-    def task_list(self) -> list[AgentTask]:
-        return self._task_list
+    def agent_state(self) -> AgentState:
+        return self._agent_state
 
-    @task_list.setter
-    def task_list(self, tasks: list[AgentTask]) -> None:
-        self._task_list = tasks
+    @agent_state.setter
+    def agent_state(self, state: AgentState) -> None:
+        self._agent_state = state
 
-    @property
-    def active_task_id(self) -> int:
-        return self._active_task_idx
-
-    def run_task(self, task: AgentTask, task_input: str) -> str:
+    def run_agent(self, agent_input: dict) -> dict:
         """
-        Runs the task with the specified input data
-        :param task: the task to run
-        :param task_input: any input data the task needs
-        :return: the output of the task
+        Runs the agent with the specified input
+        :param agent_input: input data to the agent
+        :return: the output of the agent
         """
-        output_data = ""
-        if task.task_type == TaskType.LLM:
-            output_data = self.process_llm_task(task_input, task.id)
-        elif task.task_type == TaskType.FUNCTION:
-            output_data = self.process_function_task(task_input, task.id)
-
-        return output_data
-
-    @abstractmethod
-    def process_llm_task(self, instruction: str, id: str) -> str:
         pass
 
-    @abstractmethod
-    def process_function_task(self, instruction: str, id: str) -> str:
-        pass
+    def request_user_input(self, message: str) -> None:
+        self.send_user_message(message)
+        # start thread to wait for input
+        self._user_input_thread = Thread(target=self._wait_for_user_input, daemon=True)
+        self._user_input_thread.start()
+
+    def user_input_received(self, user_input: dict) -> None:
+        self._user_input = user_input
+
+    def _wait_for_user_input(self) -> None:
+        timeout = 30
+        delay = 1
+        while True:
+            if self._user_input:
+                break
+            if timeout <= 0:
+                break
+
+            sleep(delay)
+            timeout -= delay
+
+    def send_user_message(self, message: str) -> None:
+        if self._send_user_message_callback:
+            self._send_user_message_callback(message)
+
+    def validate_input(self, agent_input: dict, schema: dict) -> bool:
+        try:
+            validate(instance=agent_input, schema=schema)
+            return True
+        except ValidationError as e:
+            print("Error validating input: ", e)
+            return False
+
+    def validate_output(self, agent_output: dict, schema: dict) -> bool:
+        try:
+            validate(instance=agent_output, schema=schema)
+            return True
+        except ValidationError as e:
+            print("Error validating output: ", e)
+            return False
+
+    def clear_chat(self) -> dict:
+        if self._llm:
+            self._llm.clear_conversation()
+
+        return {"response": "Cleared chat history"}
