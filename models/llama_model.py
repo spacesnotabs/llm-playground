@@ -3,7 +3,6 @@ from pathlib import Path
 from .base_model import BaseModel
 from .model_settings import ModelSettings
 import time
-from tools.file_tools import mistral_tools
 
 from llama_cpp import Llama
 
@@ -31,7 +30,6 @@ class LlamaModel(BaseModel):
             messages=self._conversation.construct_api_message(),
             max_tokens=self._settings.max_tokens,  # Limit the length of the output
             temperature=self._settings.temperature,  # Control the creativity of the model (0.0-1.0)
-            tools=mistral_tools,
             tool_choice="required"
             # top_p=0.9  # Use nucleus sampling to limit the highest-probability tokens
         )

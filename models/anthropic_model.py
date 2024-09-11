@@ -3,7 +3,7 @@ from anthropic.types import ToolUseBlock
 
 from .base_model import BaseModel
 from .model_settings import ModelSettings
-from tools.file_tools import anthro_tools, process_tool_call
+from tools.file_tools import process_tool_call
 
 
 class AnthropicModel(BaseModel):
@@ -29,7 +29,6 @@ class AnthropicModel(BaseModel):
                                                 system=self._system_prompt if self._system_prompt else "",
                                                 messages=self.conversation.construct_api_message(),
                                                 temperature=self._settings.temperature,
-                                                tools=anthro_tools,
                                                 top_k=500
                                                 )
 
@@ -72,7 +71,6 @@ class AnthropicModel(BaseModel):
                                                          system=self._system_prompt if self._system_prompt else "",
                                                          messages=convo_history,
                                                          temperature=self._settings.temperature,
-                                                         tools=anthro_tools,
                                                          top_k=500
                                                          )
 

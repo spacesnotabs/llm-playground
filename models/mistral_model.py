@@ -2,8 +2,6 @@ from pathlib import Path
 
 from .base_model import BaseModel
 from .model_settings import ModelSettings
-import time
-from tools.file_tools import mistral_tools
 
 from llama_cpp import Llama
 
@@ -21,12 +19,19 @@ class MistralModel(BaseModel):
                             n_threads_batch=256,
                             n_ctx=32000)
 
+        self._system_prompt_sent = False
+
     def send_message(self, contents: str) -> str:
         """
         Send a prompt to the API and return the response
         :param prompt: the prompt to send
         :return: the response
         """
+
+        if self.system_prompt and not self._system_prompt_sent:
+            contents = f"{self.system_prompt} {contents}"
+            self._system_prompt_sent = True
+
         self.conversation.add_user_message(contents)
         response = self._model.create_chat_completion(
             messages=self._conversation.construct_api_message(),
