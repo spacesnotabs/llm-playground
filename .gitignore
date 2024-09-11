@@ -5,3 +5,5 @@ __pycache__/
 credentials.json
 conversations/
 email_credentials.json
+token.pickle
+token.json
