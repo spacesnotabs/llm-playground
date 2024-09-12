@@ -3,53 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Interface</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" />
-    <link rel="stylesheet" href="/static/style.css" />
-
+    <title>LLM Web Interface</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Agent System</h1>
+    <div class="container">
+        <div class="controls">
+            <label for="model-select">Select Model:</label>
+            <select id="model-select">
+                <option value="gemini">Gemini</option>
+                <option value="mistral">Mistral</option>
+            </select>
+            <button id="set-model-btn">Set Model</button>
 
-        <div class="row">
-            <div class="col-md-6">
-                <h2>Chat</h2>
-                <div class="form-group">
-                    <label for="model-select">Select Model:</label>
-                    <select class="form-control" id="model-select">
-                        {% for model_name in models %}
-                            <option value="{{ model_name }}">{{ model_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="chat-container" id="chat-output">
-                    </div>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="user-input" placeholder="Enter message...">
-                </div>
-                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
-                <button class="btn btn-secondary" onclick="clearChat()">Clear</button>
-            </div>
+            <label for="file-path">File Path:</label>
+            <input type="text" id="file-path" placeholder="Enter file path">
+            <button id="submit-file-btn">Submit File</button>
 
-            <div class="col-md-6">
-                <h2>Task Flow</h2>
-                <div id="task-flow-container">
-                    <!-- Task flow elements will be added here -->
-                </div>
-                <button class="btn btn-success" onclick="createTaskFlow()">Create Task Flow</button>
-                <button class="btn btn-info" onclick="runTaskFlow()">Run Task Flow</button>
-            </div>
+            <label for="mode-toggle">Mode:</label>
+            <select id="mode-toggle">
+                <option value="build_app_mode">Build App Mode</option>
+                <option value="chat_mode">Chat Mode</option>
+                <option value="code_mode">Code Mode</option>
+            </select>
+        </div>
+
+        <div class="chat-container">
+            <div id="chat-box"></div>
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script>
+        const socket = io();
 
-    <script src="/static/script.js" ></script>
+        document.getElementById('send-btn').addEventListener('click', function() {
+            const message = document.getElementById('user-input').value;
+            const filepath = document.getElementById('file-path');
+            socket.emit('send_message', { message, filepath });
+        });
+
+        socket.on('receive_message', function(data) {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `${data.response}`;
+        });
+
+        document.getElementById('set-model-btn').addEventListener('click', function() {
+            const model = document.getElementById('model-select').value;
+            fetch('/set_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ model })
+            });
+        });
+
+        document.getElementById('submit-file-btn').addEventListener('click', function() {
+            const filePath = document.getElementById('file-path').value;
+            fetch('/file_input', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ file_path: filePath })
+            });
+        });
+    </script>
 </body>
 </html>
