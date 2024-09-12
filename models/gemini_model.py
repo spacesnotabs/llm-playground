@@ -14,6 +14,7 @@ class GeminiModel(BaseModel):
         super().__init__(settings=settings)
         self._model: genai.GenerativeModel | None = None
         self._chat: genai.ChatSession | None = None
+        self._stream = True
 
     def initialize(self) -> None:
         config = genai.types.GenerationConfig(
@@ -41,7 +42,12 @@ class GeminiModel(BaseModel):
         self.conversation.add_user_message(contents)
 
         try:
-            response = self._chat.send_message(contents)
+            response = self._chat.send_message(contents, stream=self._stream)
+            if self._stream:
+                for chunk in response:
+                    if self._response_callback:
+                        self._response_callback(chunk.text)
+
         except Exception as e:
             print("Gemini failed with exception: ", e)
             return ""
@@ -50,8 +56,9 @@ class GeminiModel(BaseModel):
 
         self.conversation.add_system_message(response.text)
 
-        if self._response_callback:
-            self._response_callback(response.text)
+        if not self._stream:
+            if self._response_callback:
+                self._response_callback(response.text)
 
         return response.text
 
