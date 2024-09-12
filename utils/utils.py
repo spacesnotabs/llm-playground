@@ -66,37 +66,39 @@ def extract_json(string) -> dict:
         return json_str  # Return the raw string if it's not valid JSON
 
 
-def extract_content(text, delimiter) -> str | None:
+def extract_content(text) -> (str | None, str | None):
     """
     Extracts the content between opening and closing delimiters.
 
     Args:
         text (str): The text to search in.
-        delimiter (str): The delimiter to use for extraction.
 
     Returns:
         str: The content between the delimiters, or None if not found.
     """
-    if delimiter == "CODE":
-        # Match [] blocks
-        block_pattern = r'\[CODE\](.*?)\[CODE\]'
-        block_match = re.findall(block_pattern, text, re.DOTALL)
-        if block_match:
-            return block_match[0]
-        
-        # Match triple backtick blocks with or without language specifier
-        backtick_pattern = r'```(?:\w+)?\s*(.*?)```'
-        backtick_match = re.findall(backtick_pattern, text, re.DOTALL)
-        if backtick_match:
-            return backtick_match[0]
-    elif delimiter == "SUMMARY":
-        # Match [] blocks
-        block_pattern = r'\[SUMMARY\](.*?)\[SUMMARY\]'
-        block_match = re.findall(block_pattern, text, re.DOTALL)
-        if block_match:
-            return block_match[0]
+    code_str = None
+    summary_str = None
+
+    print(text)
+    # Match [] blocks
+    block_pattern = r'\[CODE\](.*?)\[CODE\]'
+    block_match = re.findall(block_pattern, text, re.DOTALL)
+    if block_match:
+        code_str = block_match[0]
+
+    # Match triple backtick blocks with or without language specifier
+    backtick_pattern = r'```(?:\w+)?\s*(.*?)```'
+    backtick_match = re.findall(backtick_pattern, text, re.DOTALL)
+    if not code_str and backtick_match:
+        code_str = backtick_match[0]
+
+    # Match [] blocks
+    block_pattern = r'\[SUMMARY\](.*?)\[SUMMARY\]'
+    block_match = re.findall(block_pattern, text, re.DOTALL)
+    if block_match:
+        summary_str = block_match[0]
     
-    return None
+    return code_str, summary_str
 
 def load_prompt(yaml_file: str, prompt_name: str):
     with open(yaml_file, 'r') as file:
@@ -118,6 +120,7 @@ def load_prompt(yaml_file: str, prompt_name: str):
         if field in prompt_data:
             content = prompt_data[field].strip()
             prompt_parts.append(f"<{tag}> {content} </{tag}>")
-            return " ".join(prompt_parts)
+
+    return " ".join(prompt_parts)
 
 
