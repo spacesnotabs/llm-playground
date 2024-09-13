@@ -51,6 +51,8 @@ class MistralModel(BaseModel):
                 response_text += text
                 if self._response_callback:
                     self._response_callback(text)
+            if self._response_callback:
+                self._response_callback('[END]')
         else:
             response_text = response['choices'][0]['message']['content']
 

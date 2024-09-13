@@ -48,6 +48,9 @@ class GeminiModel(BaseModel):
                     if self._response_callback:
                         self._response_callback(chunk.text)
 
+                if self._response_callback:
+                    self._response_callback('[END]')
+
         except Exception as e:
             print("Gemini failed with exception: ", e)
             return ""

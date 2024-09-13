@@ -18,6 +18,7 @@ model_controller = ModelController()
 active_model: BaseModel | None = None
 active_agent: BaseAgent | None = None
 
+
 @app.route("/")
 def index():
     global active_model
@@ -32,6 +33,7 @@ def index():
 def set_model():
     global active_model
     selected_model = request.json.get("model")
+    print('setting model to ', selected_model)
     active_model = get_model(model_name=selected_model, system_prompt=None)
 
     return jsonify({"message": "Model set and chat cleared."})
@@ -82,11 +84,14 @@ def get_model(model_name: str, system_prompt: str | None):
         active_agent._llm = active_model
     return model
 
+
 def update_chat(text: str):
     print(text)
-    print('*')
-    socketio.emit('receive_message', {'response': text})
-    # socketio.emit('message', text)
+    if text == '[END]':
+        socketio.emit('receive_message', {'response': text, 'end': True})
+    else:
+        socketio.emit('receive_message', {'response': text, 'end': False})
+
 
 def get_agent(agent_name: str, model: BaseModel) -> BaseAgent:
     global active_agent
