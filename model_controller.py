@@ -8,6 +8,9 @@ from models.model_settings import ModelType, ModelSettings
 import json
 import yaml
 
+from models.phi_model import PhiModel
+
+
 class ModelController:
     """
     A class to manage and retrieve LLM models.
@@ -64,6 +67,28 @@ class ModelController:
             temperature=0.8
         )
         return MistralModel(model_dir=model_dir, settings=settings)
+    @staticmethod
+    def create_phi_model(model_name: str, model_id: str, model_dir: Path | None = None) -> PhiModel | None:
+        """
+        Creates a PhiModel instance.
+
+        Args:
+            model_name (str): The name of the Phi model.
+            model_id (str): The ID of the Phi model.
+            model_dir (Path, optional): The directory containing the Mistral model. Defaults to None.
+
+        Returns:
+            PhiModel | None: A PhiModel instance or None if the model directory is not provided.
+        """
+        settings = ModelSettings(
+            api_key="",
+            model_type=ModelType.PHI,
+            model_name=model_name,
+            model_id=model_id,
+            max_tokens=32000,
+            temperature=0.8
+        )
+        return PhiModel(model_dir=model_dir, settings=settings)
 
     @staticmethod
     def create_llama_model(model_name: str, model_id: str, model_dir: Path | None = None) -> LlamaModel | None:
@@ -149,6 +174,22 @@ class ModelController:
             model_id='mistral-7b',
             model_dir=Path(self.credentials.get('llm_apis', {}).get('mistral', {}).get('model_dir', ''),
                            self.credentials.get('llm_apis', {}).get('mistral', {}).get('model_file', ''))
+        )
+
+    def get_phi_model(self) -> PhiModel | None:
+        """
+        Retrieves a PhiModel instance from credentials.
+
+        Returns:
+            PhiModel | None: A PhiModel instance or None if the model directory is not found.
+        """
+        model_dir = Path(self.credentials.get('llm_apis', {}).get('phi', {}).get('model_dir', ''),
+                         self.credentials.get('model_file', ''))
+        return self.create_phi_model(
+            model_name='phi',
+            model_id='phi',
+            model_dir=Path(self.credentials.get('llm_apis', {}).get('phi', {}).get('model_dir', ''),
+                           self.credentials.get('llm_apis', {}).get('phi', {}).get('model_file', ''))
         )
 
     def get_llama_model(self) -> LlamaModel | None:

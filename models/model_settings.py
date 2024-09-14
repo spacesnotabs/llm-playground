@@ -6,6 +6,7 @@ class ModelType(Enum):
     MISTRAL = 1
     LLAMA = 2
     GEMINI = 3
+    PHI = 4
 
 @dataclass
 class ModelSettings:
