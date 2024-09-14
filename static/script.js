@@ -9,6 +9,15 @@ document.getElementById('send-btn').addEventListener('click', function() {
     socket.emit('send_message', { message });
 });
 
+document.getElementById('clear-btn').addEventListener('click', function() {
+    chatBox.innerHTML = '';
+    socket.emit('clear_history');
+});
+
+document.getElementById('add-context-file').addEventListener('click', function() {
+
+});
+
 document.getElementById('set-model-btn').addEventListener('click', function() {
     const model = document.getElementById('model-select').value;
     fetch('/set_model', {
@@ -44,16 +53,24 @@ socket.on('receive_message', function (data) {
             currentAgentResponse = null;
         }
     } else {
-        if (!currentAgentResponse) {
-            currentAgentResponse = document.createElement('div');
-            currentAgentResponse.classList.add("agent-message");
-            currentAgentResponse.innerHTML = `<span>Agent:</span> `;
-            chatBox.appendChild(currentAgentResponse);
+        if (data.system == true) {
+            // received a system message
+            systemResponse = document.createElement('div');
+            systemResponse.classList.add("system-message");
+            systemResponse.innerHTML = data.response;
+            chatBox.appendChild(systemResponse);
+        } else {
+            if (!currentAgentResponse) {
+                currentAgentResponse = document.createElement('div');
+                currentAgentResponse.classList.add("agent-message");
+                currentAgentResponse.innerHTML = `<span>Agent:</span> `;
+                chatBox.appendChild(currentAgentResponse);
+            }
+
+            let formattedResponse = data.response;
+            currentAgentResponse.insertAdjacentHTML('beforeend', formattedResponse)
+
         }
-
-        let formattedResponse = data.response;
-        currentAgentResponse.insertAdjacentHTML('beforeend', formattedResponse)
-
         // Keep scrolling the chat box down
         chatBox.scrollTop = chatBox.scrollHeight;
     }

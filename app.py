@@ -28,16 +28,15 @@ def index():
     return render_template("index.html")
 
 
+
 # Model selection and chat clearing
 @app.route("/set_model", methods=["POST"])
 def set_model():
     global active_model
     selected_model = request.json.get("model")
-    print('setting model to ', selected_model)
     active_model = get_model(model_name=selected_model, system_prompt=None)
 
     return jsonify({"message": "Model set and chat cleared."})
-
 
 # @app.route("/set_agent", methods=["POST"])
 # def set_agent():
@@ -58,18 +57,24 @@ def set_model():
 def handle_message(data):
     user_input = data.get('message')
     file_path = data.get('file-path')
-    print(file_path)
     response = active_agent.run_agent(agent_input={"prompt": user_input})
-    # emit('receive_message', {'response': response['response']})
+
+
+@socketio.on('clear_history')
+def clear_history():
+    active_agent.clear_chat()
 
 
 def get_model(model_name: str, system_prompt: str | None):
     global active_model
     model = None
+    update_chat(text=f"Setting model to {model_name}", system=True)
     if model_name == "gemini":
         model = model_controller.get_gemini_model()
     elif model_name == "mistral":
         model = model_controller.get_mistral_model()
+    elif model_name == "phi":
+        model = model_controller.get_phi_model()
     else:
         print("No model with name ", model_name)
         return
@@ -85,12 +90,14 @@ def get_model(model_name: str, system_prompt: str | None):
     return model
 
 
-def update_chat(text: str):
-    print(text)
-    if text == '[END]':
-        socketio.emit('receive_message', {'response': text, 'end': True})
+# def update_chat(text: str, system: bool = False) -> None:
+def update_chat(text: str, system: bool = False) -> None:
+    if system:
+        socketio.emit('receive_message', {'response': text, 'end': False, 'system': True})
+    elif text == '[END]':
+        socketio.emit('receive_message', {'response': text, 'end': True, 'system': False})
     else:
-        socketio.emit('receive_message', {'response': text, 'end': False})
+        socketio.emit('receive_message', {'response': text, 'end': False, 'system': False})
 
 
 def get_agent(agent_name: str, model: BaseModel) -> BaseAgent:
