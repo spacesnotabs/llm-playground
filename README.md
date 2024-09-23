@@ -30,8 +30,12 @@ In order to use APIs and local LLMs, create a `credentials.json` file in the roo
   },
 
 ```
+To run the web application, simply run the following
+  ```bash
+  python app.py
+  ```
 
-The application offers three distinct modes of operation:
+The CLI verion of the application offers three distinct modes of operation:
 
 - **Build App Mode:**  
   ```bash
