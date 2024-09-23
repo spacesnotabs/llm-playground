@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import tools.file_tools
 from agents.chat_agent import ChatAgent
@@ -7,12 +8,21 @@ from agents.sw_architect import SWArchitect
 from agents.coding_agent import CodingAgent
 from model_controller import ModelController
 from utils.utils import extract_content, load_prompt
+from workflows.workflow_controller import WorkflowController
 
+def user_input(inputs: list, outputs: list) -> dict:
+    output_data: dict = {}
+    print('user-input: ', inputs)
+    print('user-input: ', outputs)
+    for item in outputs:
+        output_data[item] = input(inputs[item])
+
+    return output_data
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["build_app_mode", "chat_mode", "code_mode"], required=True)
+    parser.add_argument("--mode", choices=["build_app_mode", "chat_mode", "code_mode", "workflow_mode"], required=True)
     args = parser.parse_args()
     
     with open("credentials.json") as f:
@@ -57,6 +67,22 @@ if __name__ == "__main__":
     llm_swarch_gemini = ModelController.create_gemini_model(model_name="Gemini", api_key=gemini_api)
     llm_swarch_gemini.system_prompt = sw_arch_prompt
     llm_swarch_gemini.initialize()
+
+    """
+    Phi Chat
+    """
+    # llm_chat_phi = ModelController.create_phi_model(model_name="Phi", )
+    """
+    Mistral Code Writing LLM 
+    """
+    # llm_write_code_mistral = ModelController.create_mistral_model(model_name="Mistral",
+    #                                                       model_id="Mistral 7B",
+    #                                                       model_dir=Path.cwd().joinpath("local_models",
+    #                                                                                     "mistral_models",
+    #                                                                                     "Mistral-7B-Instruct-v0.3-GGUF",
+    #                                                                                     "Mistral-7B-Instruct-v0.3.Q2_K.gguf"))
+    # llm_write_code_mistral.system_prompt = write_code_prompt
+    # llm_write_code_mistral.initialize()
 
     print("Models loaded.")
 
@@ -131,5 +157,12 @@ if __name__ == "__main__":
                 break
             response = chat_agent.run_agent(agent_input={"prompt": user_input})
             print(f"ChatAgent: {response['response']}")
+    elif args.mode == "workflow_mode":
+        controller = WorkflowController(user_input)
+        # controller.load_workflow('write_code')
+        # controller.set_agent(code_agent)
+        controller.load_workflow('chat')
+        controller.set_agent(chat_agent)
+        controller.execute_workflow()
     else:
         print("Invalid mode specified.")

@@ -1,0 +1,31 @@
+{
+  "workflow_id": "chat_workflow",
+  "name": "Chat with an LLM",
+  "description": "A basic workflow for chatting with an LLM",
+  "steps": [
+    {
+      "id": 1,
+      "type": "loop",
+      "description": "Converse with the LLM",
+      "steps": [
+        {
+          "id": 2,
+          "type": "user_input",
+          "description": "User sends a message",
+          "input": {"prompt":  "User: "},
+          "output": ["prompt"],
+          "next_step": 3
+        },
+        {
+          "id": 3,
+          "type": "agent_action",
+          "agent": "chat-agent",
+          "description": "LLM sends a message",
+          "input": {"prompt":  "LLM: "},
+          "output": ["response"],
+          "next_step": 2
+        }
+      ]
+    }
+  ]
+}

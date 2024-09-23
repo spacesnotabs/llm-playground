@@ -85,7 +85,7 @@ class ModelController:
             model_type=ModelType.PHI,
             model_name=model_name,
             model_id=model_id,
-            max_tokens=32000,
+            max_tokens=5000,
             temperature=0.8
         )
         return PhiModel(model_dir=model_dir, settings=settings)
@@ -131,7 +131,7 @@ class ModelController:
             model_type=ModelType.GEMINI,
             model_name=model_name,
             model_id=model_id,
-            max_tokens=5000,
+            max_tokens=7000,
             temperature=1.0
         )
         return GeminiModel(settings=settings)

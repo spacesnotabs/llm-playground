@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/treejs-master/treejs-master/treejs.css">
 </head>
 <body>
     <div class="container">
@@ -20,14 +21,19 @@
                     <button id="set-model-btn">Set Model</button>
                 </div>
                 <div class="controls">
-                    <input type="text" id="file-path" placeholder="Enter file path">
+                    <input type="text" id="directory-path" placeholder="Enter source directory path">
+                    <button id="load-directory-btn">Load Directory</button>
                 </div>
                 <div class="controls">
-                    <input type="file" id="file-input" multiple style="display: none;">
-                    <button id="add-context-file">Add Context File</button>
-                    <div id="context-files">
-                        <!-- Context files will be added here -->
-                    </div>
+                    <select id="workflow-select">
+                        <option value="workflow1">Workflow 1</option>
+                        <option value="workflow2">Workflow 2</option>
+                        <option value="workflow3">Workflow 3</option>
+                    </select>
+                    <button id="start-workflow-btn">Start Workflow</button>
+                </div>
+                <div class="directory-explorer" id="directory-explorer">
+                    <!-- Directory structure will be loaded here -->
                 </div>
             </div>
         </div>
@@ -48,6 +54,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.2/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="/static/treejs-master/treejs-master/tree.min.js"></script>
     <script src="/static/script.js"></script>
 </body>
 </html>

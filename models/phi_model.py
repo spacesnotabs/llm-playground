@@ -15,11 +15,11 @@ class PhiModel(BaseModel):
         self._model = Llama(model_path=str(model_dir),
                             verbose=False,
                             max_tokens=self._settings.max_tokens,
-                            n_gpu_layers=32,
-                            n_batch=256,
-                            n_threads=256,
-                            n_threads_batch=256,
-                            n_ctx=32000)
+                            n_gpu_layers=16,
+                            n_batch=64,
+                            n_threads=24,
+                            n_threads_batch=16,
+                            n_ctx=20480)
 
         self._system_prompt_sent = False
         self._stream = True

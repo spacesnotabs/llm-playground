@@ -5,9 +5,9 @@ class ChatAgent(BaseAgent):
     input_schema = {
         "type": "object",
         "properties": {
-            "prompt": {"type": "string"}
+            "user_input": {"type": "string"}
         },
-        "required": ["prompt"]
+        "required": ["user_input"]
     }
 
     output_schema = {
@@ -25,7 +25,7 @@ class ChatAgent(BaseAgent):
         if not self.validate_input(agent_input=agent_input, schema=self.input_schema):
             return {"error": "Invalid input data."}
 
-        response = self._llm.send_message(agent_input["prompt"])
+        response = self._llm.send_message(agent_input["user_input"])
         agent_output = {"response": response}
 
         if not self.validate_output(agent_output=agent_output, schema=self.output_schema):

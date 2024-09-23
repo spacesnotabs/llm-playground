@@ -1,0 +1,70 @@
+{
+  "workflow_id": "write_code_workflow",
+  "name": "Code Writing Workflow",
+  "description": "This workflow helps users or modify code.",
+  "steps": [
+    {
+      "id": 1,
+      "type": "user_input",
+      "description": "User provides directions for coding",
+      "input": {
+        "prompt": "What are your instructions for coding? "
+      },
+      "output": {
+        "user_input":  "",
+        "files_to_modify":  [],
+        "context_files": []
+      },
+      "next_step": 2
+    },
+    {
+      "id": 2,
+      "type": "loop",
+      "description": "Loop through files to modify code.",
+      "loop_over": "files_to_modify.filepath",
+      "next_step": 6,
+      "sub-steps": [
+        {
+          "id": 3,
+          "type": "system_action",
+          "agent": "file_read",
+          "description": "File utilities extract content from applicable files.",
+          "input": ["filepath", "context_files"],
+          "output": ["code_to_modify", "context"],
+          "next_step": 4
+        },
+        {
+          "id": 4,
+          "type": "agent_action",
+          "agent": "code_agent",
+          "description": "Software agent writes or modifies the code.",
+          "input": ["code_to_modify", "context", "user_input"],
+          "output": ["modified_code","agent_summary"],
+          "next_step": 5
+        },
+        {
+          "id": 5,
+          "type": "user_input",
+          "description": "User confirms or modifies the code",
+          "prepend": ["modified_code","agent_summary"],
+          "input": {
+            "prompt": "Would you like to proceed with the changes? Yes/No: "
+          },
+          "output": ["user_input"],
+          "next_step": {
+            "on_success": 6,
+            "on_failure": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "system_action",
+      "agent": "file_write",
+      "description": "Write the file",
+      "input": ["code_to_modify", "files_to_modify"],
+      "output": ["result_of_write"]
+    }
+  ]
+}

@@ -124,9 +124,46 @@ button:hover {
     font-weight: bold;
     margin-right: 5px;
 }
+
 .complete {
     background-color: #d4edda;
 }
+
+.directory-tree {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.directory-tree ul {
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+.directory-item {
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.directory-item:hover {
+    background-color: #f0f0f0;
+}
+
+.directory-item.folder > span::before {
+    content: '📁 ';
+}
+
+.directory-item.folder.expanded > span::before {
+    content: '📂 ';
+}
+
+.directory-item.file::before {
+    content: '📄 ';
+}
+
+.directory-item.selected {
+    background-color: #e0e0e0;
+}
+
 /* Media query for smaller screens */
 @media (max-width: 768px) {
     .container {
