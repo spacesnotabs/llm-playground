@@ -20,7 +20,19 @@ class ModelController:
         Initializes the ModelController with an empty list of agents and loads credentials.
         """
         self._agents: list[BaseModel] = []
+        self.credentials: dict | None = None
         self.load_credentials()
+
+    def available_models(self) -> list[str]:
+        """
+        Returns a list of models available on this system, based on credentials file
+        @return list of available model names
+        """
+        models: list[str] = []
+        if self.credentials:
+            models = [model_name for model_name in self.credentials['llms'].keys()]
+
+        return models
 
     @staticmethod
     def create_anthropic_model(model_name: str, model_id: str, api_key: str | None = None) -> AnthropicModel | None:
@@ -157,7 +169,7 @@ class ModelController:
         return self.create_anthropic_model(
             model_name='claude-2',
             model_id='claude-2',
-            api_key=self.credentials.get('llm_apis', {}).get('anthropic', {}).get('api_key')
+            api_key=self.credentials.get('llms', {}).get('anthropic', {}).get('api_key')
         )
 
     def get_mistral_model(self) -> MistralModel | None:
@@ -167,13 +179,13 @@ class ModelController:
         Returns:
             MistralModel | None: A MistralModel instance or None if the model directory is not found.
         """
-        model_dir = Path(self.credentials.get('llm_apis', {}).get('mistral', {}).get('model_dir', ''),
+        model_dir = Path(self.credentials.get('llms', {}).get('mistral', {}).get('model_dir', ''),
                          self.credentials.get('model_file', ''))
         return self.create_mistral_model(
             model_name='mistral-7b',
             model_id='mistral-7b',
-            model_dir=Path(self.credentials.get('llm_apis', {}).get('mistral', {}).get('model_dir', ''),
-                           self.credentials.get('llm_apis', {}).get('mistral', {}).get('model_file', ''))
+            model_dir=Path(self.credentials.get('llms', {}).get('mistral', {}).get('model_dir', ''),
+                           self.credentials.get('llms', {}).get('mistral', {}).get('model_file', ''))
         )
 
     def get_phi_model(self) -> PhiModel | None:
@@ -183,13 +195,13 @@ class ModelController:
         Returns:
             PhiModel | None: A PhiModel instance or None if the model directory is not found.
         """
-        model_dir = Path(self.credentials.get('llm_apis', {}).get('phi', {}).get('model_dir', ''),
+        model_dir = Path(self.credentials.get('llms', {}).get('phi', {}).get('model_dir', ''),
                          self.credentials.get('model_file', ''))
         return self.create_phi_model(
             model_name='phi',
             model_id='phi',
-            model_dir=Path(self.credentials.get('llm_apis', {}).get('phi', {}).get('model_dir', ''),
-                           self.credentials.get('llm_apis', {}).get('phi', {}).get('model_file', ''))
+            model_dir=Path(self.credentials.get('llms', {}).get('phi', {}).get('model_dir', ''),
+                           self.credentials.get('llms', {}).get('phi', {}).get('model_file', ''))
         )
 
     def get_llama_model(self) -> LlamaModel | None:
@@ -202,7 +214,7 @@ class ModelController:
         return self.create_llama_model(
             model_name='llama-7b',
             model_id='llama-7b',
-            model_dir=Path(self.credentials.get('llm_apis', {}).get('llama', {}).get('model_dir', ''))
+            model_dir=Path(self.credentials.get('llms', {}).get('llama', {}).get('model_dir', ''))
         )
 
     def get_gemini_model(self) -> GeminiModel | None:
@@ -214,5 +226,5 @@ class ModelController:
         """
         return self.create_gemini_model(
             model_name='gemini-pro',
-            api_key=self.credentials.get('llm_apis', {}).get('gemini', {}).get('api_key')
+            api_key=self.credentials.get('llms', {}).get('gemini', {}).get('api_key')
         )

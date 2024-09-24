@@ -30,9 +30,9 @@ if __name__ == "__main__":
 
     # Usage example
 
-    openai_api = config['llm_apis']['openai']['api_key']
-    anthropic_api = config['llm_apis']['anthropic']['api_key']
-    gemini_api = config['llm_apis']['gemini']['api_key']
+    openai_api = config['llms']['openai']['api_key']
+    anthropic_api = config['llms']['anthropic']['api_key']
+    gemini_api = config['llms']['gemini']['api_key']
 
     yaml_file = 'prompts.yaml'
     write_code_prompt = load_prompt(yaml_file=yaml_file, prompt_name='write_code')
