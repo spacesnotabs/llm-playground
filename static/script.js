@@ -3,6 +3,10 @@ const chatBox = document.getElementById('chat-box');
 const directoryExplorer = document.getElementById('directory-explorer');
 let treeView;
 
+function clearChatBox() {
+    chatBox.innerHTML = ""
+}
+
 document.getElementById('send-btn').addEventListener('click', function() {
     const input = document.getElementById('user-input');
     const message = input.value;
@@ -35,7 +39,7 @@ document.getElementById('send-btn').addEventListener('click', function() {
 });
 
 document.getElementById('clear-btn').addEventListener('click', function() {
-    chatBox.innerHTML = '';
+    clearChatBox();
     socket.emit('clear_history');
 });
 
@@ -96,8 +100,13 @@ function loadDirectory(path) {
 
 let currentAgentResponse = null;
 
+/* Socket Listeners */
 socket.on('post_message', function (data) {
     displayPrompt(data);
+});
+
+socket.on('model_changed', function(data) {
+    clearChatBox();
 });
 
 function displayPrompt(data) {

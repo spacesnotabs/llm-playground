@@ -53,7 +53,7 @@ def set_model():
     global active_model
     selected_model = request.json.get("model")
     # active_model = get_model(model_name=selected_model, system_prompt=write_code_prompt)
-    active_model = get_model(model_name=selected_model)
+    active_model = get_model(model_name=selected_model, system_prompt=None)
 
     # workflow_controller.execute_workflow()
     return jsonify({"message": "Model set and chat cleared."})
@@ -122,7 +122,6 @@ def handle_message(data):
 
 
 
-
 @socketio.on('clear_history')
 def clear_history():
     active_agent.clear_chat()
@@ -150,6 +149,9 @@ def get_model(model_name: str, system_prompt: str | None):
     active_model = model
     if active_agent:
         active_agent._llm = active_model
+
+    model.clear_conversation()
+    socketio.emit('model_changed', {'model': model_name})
     return model
 
 
