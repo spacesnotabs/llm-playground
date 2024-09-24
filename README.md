@@ -12,7 +12,7 @@ This Python application is meant to serve as a tool to facilitate using local an
 In order to use APIs and local LLMs, create a `credentials.json` file in the root directory which should look similar to this:
 ```json
 {
-  "llm_apis": {
+  "llms": {
     "openai": {
       "api_key": "123-456-7890",
       "org_id": ""
