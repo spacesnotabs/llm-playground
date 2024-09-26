@@ -13,6 +13,7 @@ class WorkflowController:
         self._state = {}  # Store inputs/outputs for passing between steps
         self._waiting_for_input = False
         self._current_loop_state: dict | None = None
+        self._loop_steps: dict | None = None
 
     def set_agent(self, agent: BaseAgent) -> None:
         self._agent = agent
@@ -30,33 +31,68 @@ class WorkflowController:
         print(f"Starting workflow: {self._workflow['name']}")
 
     def execute_workflow(self):
-        if self._current_loop_state:
-            self.handle_loop(self._current_loop_state['step'])
-        elif self._current_step:
-            self.execute_step(self._current_step)
+        print('execute_workflow()')
+        while True:
+            while self._current_step:
+                if self._current_step['type'] == 'loop':
+                    self.execute_loop(self._current_step)
+                else:
+                    self.execute_step(self._current_step)
 
-        return not self._waiting_for_input and self._current_step is not None
+                if self._waiting_for_input:
+                    return  # exit workflow as we wait for response
+
+                self.transition_to_next_step()
+
+            # if we get here, the workflow has finished
+            print('Workflow complete. Starting over.')
+            self._current_step = self._workflow['steps'][0]  # Start at the first step
+
+    def execute_loop(self, loop_step):
+        if not self._current_loop_state:
+            self._initialize_loop_state(loop_step)
+
+        while self._current_loop_state['current_index'] < len(self._current_loop_state['items']):
+            for sub_step in loop_step['sub-steps']:
+                self.execute_step(sub_step)
+                if self._waiting_for_input:
+                    return
+            self._current_loop_state['current_index'] += 1
+
+        self._current_loop_state = None
+
+    def _initialize_loop_state(self, step):
+        loop_over_list = step['loop_over'].split('.')[0]
+        loop_over_item = step['loop_over'].split('.')[1]
+        self._current_loop_state = {
+            'parent_step': step,
+            'items': self._state.get(loop_over_list, []),
+            'current_index': 0,
+            'current_sub_step': 0
+        }
+        self._state[loop_over_item] = self._current_loop_state['items'][0]
 
     def execute_step(self, step: dict):
         """Executes the workflow from the current step."""
         step_type = step['type']
         step_id = self._current_step['id']
 
-        print(f"Executing step {step_id}: {self._current_step['description']}")
+        print(f"Executing step {step_id}: {self._current_step}")
 
         if step_type == 'user_input':
             self.handle_user_input(self._current_step)
             return # wait for user input
         elif step_type == 'agent_action':
             self.handle_agent_action(self._current_step)
+            print('agent_action step handled')
         elif step_type == 'system_action':
             self.handle_system_action(self._current_step)
-        elif step_type == 'loop':
-            self.handle_loop(self._current_step)
+            print('system_action step handled')
+        # elif step_type == 'loop':
+        #     self.handle_loop(self._current_step)
+        #     print('loop step handled')
         else:
             print(f"Unknown step type: {step_type}")
-
-        self.transition_to_next_step()
 
     def handle_user_input(self, step, user_input: dict | None = None):
         print('Handling user input')
@@ -65,11 +101,11 @@ class WorkflowController:
         # combine output from previous step to include in prompt
         if self._state:
             for item in step['prepend']:
-                input_prompt += f'\n{self._state[item]}\n'
+                input_prompt += f' {self._state[item]} '
 
         # prepare prompt to send to user
         for item in step['input'].values():
-            input_prompt += f'\n{item}\n'
+            input_prompt += f' {item} '
 
         self._waiting_for_input = True
         self._input_provider(input_prompt)
@@ -96,15 +132,15 @@ class WorkflowController:
         if tool_to_use == "file_read":
 
             self._state["code_to_modify"] = ''
-            file_content = read_file(self._state["filepath"])
+            file_content = read_file(self._state["files_to_modify"][0])
             self._state["code_to_modify"] += file_content
 
             self._state["context"] = ""
             for file in self._state["context_files"]:
-                self._state["context"] += f"{file}\n\n{read_file(file)}\n"
+                self._state["context"] += f"{file} {read_file(file)} "
 
         elif tool_to_use == "file_write":
-            result = write_file(self._state["files_to_modify"], self._state["modified_code"])
+            result = write_file(self._state["files_to_modify"][0], self._state["modified_code"])
             self._state["result_of_write"] = result
 
         # print("handle_system_action outputting ", self._state)
@@ -126,85 +162,47 @@ class WorkflowController:
         for output in step['output']:
             self._state[output] = agent_output[output]
 
-    def handle_loop(self, step):
-        """Executes a loop step (repeat action for multiple items or indefinitely)."""
-        loop_over_list = step['loop_over'].split('.')[0]
-        loop_over_item = step['loop_over'].split('.')[1]
-
-        if not self._current_loop_state:
-            # first time entering this function so create a new loop state
-            self._current_loop_state = {
-                'parent_step': step,
-                'items': self._state.get(loop_over_list, []),
-                'current_index': 0,
-                'current_sub_step': 0
-            }
-
-        if self._current_loop_state['current_index'] < len(self._current_loop_state['items']):
-            # more sub_steps to run
-            item = self._current_loop_state['items'][self._current_loop_state['current_index']]
-            self._state[loop_over_item] = item
-            self._current_step = step['sub-steps'][self._current_loop_state['current_sub_step']]
-            self.execute_step(self._current_step)
-        else:
-            self._current_loop_state = None
-            self.resume_workflow()
-
-        # loop_over = step.get('loop_over', None)
-        # print(f"Handling loop over parameter {loop_over}")
-        # if loop_over:
-        #     str_parts = loop_over.split('.')
-        #     loop_list = self._state.get(str_parts[0])
-        #     input_name = str_parts[1]  # get the second part of the string to use as state data for the loop
-        #
-        #     print(f"  Iterating over {loop_list} for each {input_name}")
-        #     for item in loop_list:
-        #         self._state[input_name] = item
-        #         print(f"    Processing {item}")
-        #         for loop_step in step['steps']:
-        #             self._current_step = loop_step
-        #             self.execute_workflow()
-        #
-        # self._current_step = step
-        # print('Loop complete')
-
-    def resume_workflow(self):
-        if self._current_loop_state:
-            self._current_loop_state['current_index'] += 1
-            self.handle_loop(self._current_loop_state['parent_step'])
-        else:
-            self.transition_to_next_step()
-        self.execute_workflow()
-
     def transition_to_next_step(self):
         """Handle transition logic to the next step."""
-        # print('Transitioning to next step with current state: ', self._state)
-        next_step = self._current_step.get('next_step', 0)
-        print('Transitioning to step: ', next_step)
-        if not next_step:
-            print('exit workflow')
-            self._current_step = None
-            return
-
-        if isinstance(next_step, dict):
-            # Conditional next step (on success/failure)
-            condition = self._state.get(self._current_step['output'][0], None)
-            if condition.lower() == 'yes':
-                next_step_id = next_step['on_success']
-            else:
-                next_step_id = next_step['on_failure']
+        if self._current_loop_state:
+            # We're in a loop, but execute_loop has finished
+            # This means we've completed all iterations
+            self._current_step = self.get_step_by_id(self._current_loop_state['parent_step']['next_step'])
+            self._current_loop_state = None
         else:
-            # Simple next step
-            next_step_id = next_step
+            # print('Transitioning to next step with current state: ', self._state)
+            next_step = self._current_step.get('next_step', 0)
+            # print('Transitioning to step: ', next_step)
+            if not next_step:
+                print('exit workflow')
+                self._current_step = None
+                return
 
-        self._current_step = self.get_step_by_id(next_step_id)
+            if isinstance(next_step, dict):
+                # Conditional next step (on success/failure)
+                condition = self._state.get(self._current_step['output'][0], None)
+                if condition.lower() == 'yes':
+                    next_step_id = next_step['on_success']
+                else:
+                    next_step_id = next_step['on_failure']
+            else:
+                # Simple next step
+                next_step_id = next_step
+
+            self._current_step = self.get_step_by_id(next_step_id)
 
     def get_step_by_id(self, step_id):
         """Find a step by its ID."""
         print('get_step_by_id: ', step_id)
-        for step in self._workflow['steps']:
-            if step['id'] == step_id:
-                return step
+        if self._current_loop_state:
+            for substep in self._loop_steps:
+                if substep['id'] == step_id:
+                    # print('  returning: ', substep)
+                    return substep
+        else:
+            for step in self._workflow['steps']:
+                if step['id'] == step_id:
+                    return step
         return None
 
     def set_user_input(self, user_input: dict):
@@ -216,3 +214,13 @@ class WorkflowController:
             self._waiting_for_input = False
             self.transition_to_next_step()
             self.execute_workflow()
+
+    def exit_workflow(self):
+        """Cleanup and stop running the workflow."""
+        self._workflow = None
+        self._current_step = None
+        self._state = {}
+        self._waiting_for_input = False
+        self._current_loop_state = None
+        self._loop_steps = None
+        print("Workflow exited")
