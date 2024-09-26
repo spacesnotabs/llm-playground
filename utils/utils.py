@@ -66,7 +66,7 @@ def extract_json(string) -> dict:
         return json_str  # Return the raw string if it's not valid JSON
 
 
-def extract_content(text) -> (str | None, str | None):
+def extract_content(text) -> str | None:
     """
     Extracts the content between opening and closing delimiters.
 
@@ -79,26 +79,28 @@ def extract_content(text) -> (str | None, str | None):
     code_str = None
     summary_str = None
 
-    print(text)
-    # Match [] blocks
-    block_pattern = r'\[CODE\](.*?)\[CODE\]'
-    block_match = re.findall(block_pattern, text, re.DOTALL)
-    if block_match:
-        code_str = block_match[0]
+    # print(text)
+    # # Match [] blocks
+    # block_pattern = r'\[CODE\](.*?)\[CODE\]'
+    # block_match = re.findall(block_pattern, text, re.DOTALL)
+    # if block_match:
+    #     code_str = block_match[0]
 
     # Match triple backtick blocks with or without language specifier
-    backtick_pattern = r'```(?:\w+)?\s*(.*?)```'
+    backtick_pattern = r'(?m)^\s*```python(?:\w+)?\s*(.*?)^```'
     backtick_match = re.findall(backtick_pattern, text, re.DOTALL)
-    if not code_str and backtick_match:
+    if backtick_match:
         code_str = backtick_match[0]
+    else:
+        code_str = text
 
-    # Match [] blocks
-    block_pattern = r'\[SUMMARY\](.*?)\[SUMMARY\]'
-    block_match = re.findall(block_pattern, text, re.DOTALL)
-    if block_match:
-        summary_str = block_match[0]
+    # # Match [] blocks
+    # block_pattern = r'\<summary\>(.*?)\<summary\>'
+    # block_match = re.findall(block_pattern, text, re.DOTALL)
+    # if block_match:
+    #     summary_str = block_match[0]
     
-    return code_str, summary_str
+    return code_str
 
 def load_prompt(yaml_file: str, prompt_name: str):
     with open(yaml_file, 'r') as file:
