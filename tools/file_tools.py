@@ -1,5 +1,6 @@
 import os
 import shutil
+from difflib import HtmlDiff, unified_diff
 
 
 def read_file(filename: str) -> str:
@@ -31,32 +32,65 @@ def write_file(filename: str, content: str) -> str:
     :param content: The content to write to the file.
     :return: A message indicating success or failure.
     """
-    try:
-        print("Writing filename: ", filename)
-        # print(content)
-        # Check if the target file exists
+    print("Writing filename: ", filename)
 
-        if os.path.exists(filename):
-            # Create a backup by copying the existing file
-            backup_filename = f"{filename}.backup"
-            shutil.copy2(filename, backup_filename)
-            print(f"Backup created: {backup_filename}")
+    # Check if the target file exists
+    if os.path.exists(filename):
+        # Create a backup by copying the existing file
+        backup_filename = f"{filename}.backup"
+        shutil.copy2(filename, backup_filename)
+    else:
+        directory = os.path.dirname(filename)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+
+    processed_content = (
+        content.replace('\\n', '\n')
+        .replace('\\"', '"')
+        .replace("\\'", "'")
+    )
+
+    encodings = ['utf-8', 'latin-1', 'ascii', 'utf-16', 'windows-1252']
+    for enc in encodings:
+        try:
+            with open(f"{filename}", 'w', encoding=enc) as file:
+                file.write(processed_content)
+            return "Successfully wrote file."
+        except UnicodeDecodeError:
+            print(f"Failed to write with {enc} encoding")
+        except IOError:
+            print("Error writing file.")
+
+def get_diff(text1: str, text2: str) -> str:
+    diff = unified_diff(a=text1.splitlines(), b=text2.splitlines(), n=5)
+    diff_string = '\n'.join(diff)
+    # Wrap the diff string in basic HTML structure
+    html_diff = f"""
+    <style>
+        .diff-add {{ color: green; }}
+        .diff-del {{ color: red; }}
+        .diff-info {{ color: grey; }}
+    </style>
+    <pre>
+    """
+
+    # Process each line of the unified diff and add HTML classes
+    for line in diff_string.splitlines():
+        if line.startswith('+') and not line.startswith('+++'):
+            html_diff += f'<span class="diff-add">{line}</span>\n'
+        elif line.startswith('-') and not line.startswith('---'):
+            html_diff += f'<span class="diff-del">{line}</span>\n'
         else:
-            directory = os.path.dirname(filename)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory)
+            html_diff += f'<span class="diff-info">{line}</span>\n'
 
-        processed_content = (
-            content.replace('\\n', '\n')
-            .replace('\\"', '"')
-            .replace("\\'", "'")
-        )
-        # processed_content = content.encode('utf-8').decode('unicode_escape')
-        with open(f"{filename}", 'w') as file:
-            file.write(processed_content)
-        return "Successfully wrote file."
-    except IOError:
-        return "Error writing file."
+    html_diff += """
+    </pre>
+    """
+
+    return html_diff
+    # html_obj = HtmlDiff()
+    # html_diff = html_obj.make_file(fromlines=text1.splitlines(), tolines=text2.splitlines(), context=True, numlines=5)
+    # return html_diff
 
 def process_tool_call(tool_name, tool_input):
     """
