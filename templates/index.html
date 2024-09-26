@@ -13,11 +13,21 @@
             <div class="settings">
                 <h2>Settings</h2>
                 <div class="controls">
-                    <select id="model-select">
-                        <option value="gemini">Gemini</option>
-                        <option value="mistral">Mistral</option>
-                        <option value="phi">Phi</option>
-                    </select>
+                    <select id="model-select"> </select>
+                    <script>
+                        // Get the model names from the JSON data
+                        const modelNames = JSON.parse('{{ model_names | tojson | safe }}');
+
+                        // Populate the select element
+                        const modelSelect = document.getElementById('model-select');
+                        modelNames.forEach(name => {
+                            const option = document.createElement('option');
+                            option.value = name;
+                            option.text = name;
+                            modelSelect.appendChild(option);
+                        });
+
+                    </script>
                     <button id="set-model-btn">Set Model</button>
                 </div>
                 <div class="controls">
@@ -26,11 +36,10 @@
                 </div>
                 <div class="controls">
                     <select id="workflow-select">
-                        <option value="workflow1">Workflow 1</option>
-                        <option value="workflow2">Workflow 2</option>
-                        <option value="workflow3">Workflow 3</option>
+                        <option value="write_code">Write Code</option>
                     </select>
                     <button id="start-workflow-btn">Start Workflow</button>
+                    <button id="stop-workflow-btn">Stop Workflow</button>
                 </div>
                 <div class="directory-explorer" id="directory-explorer">
                     <!-- Directory structure will be loaded here -->

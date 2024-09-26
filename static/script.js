@@ -21,9 +21,9 @@ document.getElementById('send-btn').addEventListener('click', function() {
         files.forEach(node => {
             const path = new TreePath(root, node);
             const parts = path.getPath();
-            let fullPath = '.';
+            let fullPath = '';
             parts.forEach(part => {
-                fullPath = fullPath + "/" + part.getUserObject();
+                fullPath = fullPath + part.getUserObject() + '\\';
             })
             console.log('fullPath=' + fullPath);
             filePaths.add(fullPath);
@@ -43,6 +43,11 @@ document.getElementById('clear-btn').addEventListener('click', function() {
     socket.emit('clear_history');
 });
 
+document.getElementById('start-workflow-btn').addEventListener('click', function() {
+    clearChatBox();
+    socket.emit('start_workflow');
+});
+
 document.getElementById('set-model-btn').addEventListener('click', function() {
     const model = document.getElementById('model-select').value;
     fetch('/set_model', {
@@ -54,6 +59,7 @@ document.getElementById('set-model-btn').addEventListener('click', function() {
 
 document.getElementById('load-directory-btn').addEventListener('click', function() {
     const directoryPath = document.getElementById('directory-path').value;
+    console.log(directoryPath)
     loadDirectory(directoryPath);
 });
 
@@ -70,21 +76,34 @@ function loadDirectory(path) {
             return null;
         }
 
-        function buildTreeNode(item) {
-            const node = new TreeNode(item.name);
+        function buildTreeNode(item, parentNode) {
+            // Ignore folders starting with a period
+            if (item.type === 'folder' && item.name.startsWith('.')) {
+                return null; // Skip building the node
+            }
+
+            const node = new TreeNode(item.name, parentNode);
             if (item.type === 'folder' && Array.isArray(item.children)) {
                 item.children.forEach(child => {
-                    node.addChild(buildTreeNode(child));
+                    const childNode = buildTreeNode(child, node);
+                    if (childNode) { // Only add if not null (skipped hidden folder)
+                        node.addChild(childNode);
+                    }
                 });
             }
             return node;
         }
 
-        const root = buildTreeNode(data);
+        const root = buildTreeNode(data, null);
 
         if (treeView) {
-            treeView.setRoot(root);
-            treeView.reload();
+            // Check if the root is null before setting it
+            if (root) {
+                treeView.setRoot(root);
+                treeView.reload();
+            } else {
+                console.error("Error: Root node is null. Check directory structure.");
+            }
         } else {
             treeView = new TreeView(root, directoryExplorer);
             treeView.reload();
@@ -117,7 +136,7 @@ function displayPrompt(data) {
             currentText = currentAgentResponse.innerHTML;
 
             // replace code blocks with correct tags
-            currentText = currentText.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+            currentText = currentText.replace(/```(\w+)? ([\s\S]*?)```/g, (match, lang, code) => {
               return `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`;
             });
             currentAgentResponse.innerHTML = currentText;
