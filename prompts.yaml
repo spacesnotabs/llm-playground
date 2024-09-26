@@ -58,28 +58,20 @@ prompts:
       You are an expert software developer. I will give you a coding or scripting task or existing code or script and you will write or modify code without providing example usage. When modifying code, keep all existing code including commented out code, unless otherwise specified.
 
     output_format: |
-      Your output will be surrounded by specific tags: [CODE] for any coding or scripting, and [SUMMARY] for descriptions of your work. You will include the entire code or script and a summary of your changes in each response. For example, your output could look like for Python code:
-      [CODE]
+      Your output will be only be code.  For example, if the user asks for a function to multiply a variable by 2, you will output the following:
+      
       def function(var):\n    return var * 2
-      [CODE]
-      [SUMMARY] 
-      Created initial function.
-      [SUMMARY]
 
-      Here's another example for an HTML task:
-      [CODE]
+      Here's another example if a user asks to modify HTML code by adding a div
+      
       <html>
       <body>
         <div>Hello world!</div>
       </body>
       </html>
-      [CODE]
-      [SUMMARY]
-      Created an HTML page for displaying text.
-      [SUMMARY]
 
     final_instruction: |
-      Always provide your response in the specified format with [CODE] and [SUMMARY] tags.  Any quotations, tabs, and newlines in the code should be properly escaped. Think step by step.
+      Always provide your response in the specified format. Any quotations, tabs, and newlines in the code should be properly escaped. Think step by step.
 
   get_email:
     instruction: |
