@@ -9,3 +9,4 @@ token.pickle
 token.json
 .sesskey
 *.backup
+/for_combining
