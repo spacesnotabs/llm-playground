@@ -1,4 +1,3 @@
-
 import json
 import re
 import yaml
@@ -79,27 +78,14 @@ def extract_content(text) -> str | None:
     code_str = None
     summary_str = None
 
-    # print(text)
-    # # Match [] blocks
-    # block_pattern = r'\[CODE\](.*?)\[CODE\]'
-    # block_match = re.findall(block_pattern, text, re.DOTALL)
-    # if block_match:
-    #     code_str = block_match[0]
-
     # Match triple backtick blocks with or without language specifier
-    backtick_pattern = r'(?m)^\s*```python(?:\w+)?\s*(.*?)^```'
+    backtick_pattern = r'(?m)^\s*```(\w+)?\s*(.*?)^```'
     backtick_match = re.findall(backtick_pattern, text, re.DOTALL)
     if backtick_match:
-        code_str = backtick_match[0]
+        code_str = backtick_match[0][1]
     else:
         code_str = text
 
-    # # Match [] blocks
-    # block_pattern = r'\<summary\>(.*?)\<summary\>'
-    # block_match = re.findall(block_pattern, text, re.DOTALL)
-    # if block_match:
-    #     summary_str = block_match[0]
-    
     return code_str
 
 def load_prompt(yaml_file: str, prompt_name: str):
@@ -124,5 +110,3 @@ def load_prompt(yaml_file: str, prompt_name: str):
             prompt_parts.append(f"<{tag}> {content} </{tag}>")
 
     return " ".join(prompt_parts)
-
-
