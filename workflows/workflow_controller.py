@@ -28,6 +28,7 @@ class WorkflowController:
             return
 
         self._current_step = self._workflow['steps'][0]  # Start at the first step
+        self.execute_workflow()
         print(f"Starting workflow: {self._workflow['name']}")
 
     def execute_workflow(self):
@@ -100,7 +101,7 @@ class WorkflowController:
 
         # combine output from previous step to include in prompt
         if self._state:
-            for item in step['prepend']:
+            for item in step.get('prepend', []):
                 input_prompt += f' {self._state[item]} '
 
         # prepare prompt to send to user
