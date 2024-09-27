@@ -21,31 +21,30 @@ class ModelController:
         """
         self._agents: list[BaseModel] = []
         self.credentials: dict | None = None
+        self._available_models: list[str] | None = None
         self.load_credentials()
 
+    @property
     def available_models(self) -> list[str]:
         """
         Returns a list of models available on this system, based on credentials file
         @return list of available model names
         """
-        models: list[str] = []
-        if self.credentials:
-            models = [model_name for model_name in self.credentials['llms'].keys()]
+        return self._available_models
 
-        return models
+    @available_models.setter
+    def available_models(self, models: list[str]) -> None:
+        self._available_models = models
 
     @staticmethod
     def create_anthropic_model(model_name: str, model_id: str, api_key: str | None = None) -> AnthropicModel | None:
         """
         Creates an AnthropicModel instance.
 
-        Args:
-            model_name (str): The name of the Anthropic model.
-            model_id (str): The ID of the Anthropic model.
-            api_key (str, optional): The API key for the Anthropic model. Defaults to None.
-
-        Returns:
-            AnthropicModel | None: An AnthropicModel instance or None if the API key is not provided.
+        @param model_name: The name of the Anthropic model.
+        @param model_id: The ID of the Anthropic model.
+        @param api_key: The API key for the Anthropic model.
+        @return AnthropicModel instance or None if the API key is not provided.
         """
         settings = ModelSettings(
             api_key=api_key,
@@ -62,13 +61,10 @@ class ModelController:
         """
         Creates a MistralModel instance.
 
-        Args:
-            model_name (str): The name of the Mistral model.
-            model_id (str): The ID of the Mistral model.
-            model_dir (Path, optional): The directory containing the Mistral model. Defaults to None.
-
-        Returns:
-            MistralModel | None: A MistralModel instance or None if the model directory is not provided.
+        @param model_name: The name of the Mistral model.
+        @param model_id: The ID of the Mistral model.
+        @param model_dir: The directory containing the Mistral model.
+        @return MistralModel instance or None if the model directory is not provided.
         """
         settings = ModelSettings(
             api_key="",
@@ -84,13 +80,10 @@ class ModelController:
         """
         Creates a PhiModel instance.
 
-        Args:
-            model_name (str): The name of the Phi model.
-            model_id (str): The ID of the Phi model.
-            model_dir (Path, optional): The directory containing the Mistral model. Defaults to None.
-
-        Returns:
-            PhiModel | None: A PhiModel instance or None if the model directory is not provided.
+        @param model_name: The name of the Phi model.
+        @param model_id: The ID of the Phi model.
+        @param model_dir: The directory containing the Mistral model.
+        @return PhiModel instance or None if the model directory is not provided.
         """
         settings = ModelSettings(
             api_key="",
@@ -107,13 +100,10 @@ class ModelController:
         """
         Creates a LlamaModel instance.
 
-        Args:
-            model_name (str): The name of the Llama model.
-            model_id (str): The ID of the Llama model.
-            model_dir (Path, optional): The directory containing the Llama model. Defaults to None.
-
-        Returns:
-            LlamaModel | None: A LlamaModel instance or None if the model directory is not provided.
+        @param model_name: The name of the Llama model.
+        @param model_id: The ID of the Llama model.
+        @param model_dir: The directory containing the Llama model.
+        @return LlamaModel instance or None if the model directory is not provided.
         """
         settings = ModelSettings(
             api_key="",
@@ -130,13 +120,10 @@ class ModelController:
         """
         Creates a GeminiModel instance.
 
-        Args:
-            model_name (str): The name of the Gemini model.
-            api_key (str, optional): The API key for the Gemini model. Defaults to None.
-            model_id (str, optional): The ID of the Gemini model. Defaults to GeminiModel.MODEL_FLASH.
-
-        Returns:
-            GeminiModel | None: A GeminiModel instance or None if the API key is not provided.
+        @param model_name: The name of the Gemini model.
+        @param api_key: The API key for the Gemini model.
+        @param model_id: The ID of the Gemini model.
+        @return GeminiModel instance or None if the API key is not provided.
         """
         settings = ModelSettings(
             api_key=api_key,
@@ -159,27 +146,47 @@ class ModelController:
             print("Warning: credentials.json not found. Using default values.")
             self.credentials = {}
 
+        # create list of available models
+        if self.credentials:
+            self.available_models = [model_name for model_name in self.credentials['llms'].keys()]
+
+
+    def get_model(self, model_name: str) -> BaseModel | None:
+        """
+        Retrieves a model instance based on model_name.
+
+        @param model_name: Name of the model to retrieve.
+        @return A BaseModel instance or None if the model is not found.
+        """
+        model = None
+        if model_name == "Gemini":
+            model = self.get_gemini_model()
+        elif model_name == "Mistral":
+            model = self.get_mistral_model()
+        elif model_name == "Phi":
+            model = self.get_phi_model()
+
+        return model
+
     def get_anthropic_model(self) -> AnthropicModel | None:
         """
         Retrieves an AnthropicModel instance from credentials.
 
-        Returns:
-            AnthropicModel | None: An AnthropicModel instance or None if the API key is not found.
+        @return AnthropicModel instance or None if the API key is not found.
         """
         return self.create_anthropic_model(
             model_name='claude-2',
             model_id='claude-2',
-            api_key=self.credentials.get('llms', {}).get('anthropic', {}).get('api_key')
+            api_key=self.credentials.get('llms', {}).get('Anthropic', {}).get('api_key')
         )
 
     def get_mistral_model(self) -> MistralModel | None:
         """
         Retrieves a MistralModel instance from credentials.
 
-        Returns:
-            MistralModel | None: A MistralModel instance or None if the model directory is not found.
+        @return MistralModel instance or None if the model directory is not found.
         """
-        model_dir = Path(self.credentials.get('llms', {}).get('mistral', {}).get('model_dir', ''),
+        model_dir = Path(self.credentials.get('llms', {}).get('Mistral', {}).get('model_dir', ''),
                          self.credentials.get('model_file', ''))
         return self.create_mistral_model(
             model_name='mistral-7b',
@@ -192,10 +199,9 @@ class ModelController:
         """
         Retrieves a PhiModel instance from credentials.
 
-        Returns:
-            PhiModel | None: A PhiModel instance or None if the model directory is not found.
+        @return PhiModel instance or None if the model directory is not found.
         """
-        model_dir = Path(self.credentials.get('llms', {}).get('phi', {}).get('model_dir', ''),
+        model_dir = Path(self.credentials.get('llms', {}).get('Phi', {}).get('model_dir', ''),
                          self.credentials.get('model_file', ''))
         return self.create_phi_model(
             model_name='phi',
@@ -208,8 +214,7 @@ class ModelController:
         """
         Retrieves a LlamaModel instance from credentials.
 
-        Returns:
-            LlamaModel | None: A LlamaModel instance or None if the model directory is not found.
+        @return LlamaModel instance or None if the model directory is not found.
         """
         return self.create_llama_model(
             model_name='llama-7b',
@@ -221,10 +226,9 @@ class ModelController:
         """
         Retrieves a GeminiModel instance from credentials.
 
-        Returns:
-            GeminiModel | None: A GeminiModel instance or None if the API key is not found.
+        @return GeminiModel instance or None if the API key is not found.
         """
         return self.create_gemini_model(
             model_name='gemini-pro',
-            api_key=self.credentials.get('llms', {}).get('gemini', {}).get('api_key')
+            api_key=self.credentials.get('llms', {}).get('Gemini', {}).get('api_key')
         )

@@ -41,9 +41,9 @@ def index():
     global workflow_controller
 
     # get available LLMs
-    model_names = model_controller.available_models()
+    model_names = model_controller.available_models
 
-    active_model = get_model(model_name= model_names[0], system_prompt='')
+    active_model = get_model(model_name=model_names[0], system_prompt='')
     active_agent = get_agent(agent_name='code', model=active_model)
     workflow_controller = WorkflowController(workflow_handler)
     workflow_controller.load_workflow('code_flow')
@@ -135,22 +135,17 @@ def clear_history():
 
 def get_model(model_name: str, system_prompt: str | None):
     global active_model
-    model = None
     update_chat(text=f"Setting model to {model_name}", system=True)
-    if model_name == "gemini":
-        model = model_controller.get_gemini_model()
-    elif model_name == "mistral":
-        model = model_controller.get_mistral_model()
-    elif model_name == "phi":
-        model = model_controller.get_phi_model()
-    else:
-        print("No model with name ", model_name)
+    model = model_controller.get_model(model_name)
+    if not model:
+        print('No model matching name ', model)
         return
 
     if system_prompt:
         model.system_prompt = system_prompt
 
     model._response_callback = update_chat
+
     active_model = model
     if active_agent:
         active_agent._llm = active_model
