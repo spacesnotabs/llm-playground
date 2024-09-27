@@ -50,6 +50,24 @@ class BaseAgent:
         """
         self._agent_state = state
 
+    @property
+    def llm(self) -> Optional[BaseModel]:
+        """
+        Returns the language model used by the agent.
+
+        :return: The language model used by the agent.
+        """
+        return self._llm
+
+    @llm.setter
+    def llm(self, llm: Optional[BaseModel]) -> None:
+        """
+        Sets the language model used by the agent.
+
+        :param llm: The language model to use for the agent.
+        """
+        self._llm = llm
+
     def run_agent(self, agent_input: Dict) -> Dict:
         """
         Runs the agent with the specified input.
