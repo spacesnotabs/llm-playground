@@ -4,6 +4,7 @@ body {
     padding: 0;
     background-color: #f0f0f0;
     height: 100vh;
+    font-size: 14px; /* Added font-size */
 }
 .container {
     display: flex;
@@ -16,6 +17,7 @@ body {
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     overflow-y: auto;
+    font-size: 14px; /* Added font-size */
 }
 .main-content {
     flex-grow: 1;
@@ -23,28 +25,44 @@ body {
     flex-direction: column;
     padding: 20px;
     min-width: 0px;
+    font-size: 14px; /* Added font-size */
 }
 h1 {
     margin-top: 0;
     color: #333;
+    font-size: 1.5em; /* Adjusted font-size */
 }
 .settings h2 {
     margin-top: 0;
     color: #444;
+    font-size: 1.2em; /* Adjusted font-size */
 }
 .controls {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
     margin-bottom: 15px;
 }
-select, input, button {
+select {
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     width: 100%;
+    font-size: 0.9em; /* Adjusted font-size */
+}
+input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 button {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 50%;
+    font-size: 0.9em; /* Adjusted font-size */
     background-color: #007bff;
     color: white;
     border: none;
@@ -75,6 +93,14 @@ button:hover {
     border-radius: 4px;
     resize: vertical;
     min-height: 100px;
+    font-size: 1em; /* Adjusted font-size */
+}
+.file-span {
+    font-size: 0.8em;
+    background-color: #f2f2f2;
+    border-radius: 4px;
+    padding: 2px 5px;
+    margin: 2px;
 }
 .button-group {
     display: flex;
@@ -97,7 +123,7 @@ button:hover {
     padding: 5px 10px;
     margin: 5px 0;
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 .user-message,
 .agent-message,
@@ -106,6 +132,7 @@ button:hover {
     padding: 8px 12px;
     border-radius: 4px;
     clear: both;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 .user-message {
     background-color: #eee;
@@ -132,16 +159,19 @@ button:hover {
 .directory-tree {
     list-style-type: none;
     padding-left: 20px;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 
 .directory-tree ul {
     list-style-type: none;
     padding-left: 20px;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 
 .directory-item {
     cursor: pointer;
     padding: 2px 5px;
+    font-size: 0.9em; /* Adjusted font-size */
 }
 
 .directory-item:hover {

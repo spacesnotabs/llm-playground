@@ -1,7 +1,9 @@
 const socket = io();
 const chatBox = document.getElementById('chat-box');
 const directoryExplorer = document.getElementById('directory-explorer');
+const fileHolder = document.getElementById('file_holder'); // Get the file_holder element
 let treeView;
+let selectedFiles = new Set(); // Store selected file names
 
 function clearChatBox() {
     chatBox.innerHTML = ""
@@ -31,9 +33,19 @@ document.getElementById('send-btn').addEventListener('click', function() {
     }
 
     let contextFiles = new Set();
+    // Send the first selected file in "files_to_modify" and the rest in "context_files"
+    let firstFile = null;
+    filePaths.forEach(file => {
+        if (!firstFile) {
+            firstFile = file;
+        } else {
+            contextFiles.add(file);
+        }
+    });
+
     socket.emit('send_message', {
         user_input:message,
-        files_to_modify: Array.from(filePaths),
+        files_to_modify: [firstFile], // Send first selected file
         context_files: Array.from(contextFiles)
     });
 });
@@ -88,6 +100,24 @@ function loadDirectory(path) {
                     const childNode = buildTreeNode(child, node);
                     if (childNode) { // Only add if not null (skipped hidden folder)
                         node.addChild(childNode);
+                        childNode.on('select', (node) => {
+                            const fileName = node.getUserObject();
+                            selectedFiles.add(fileName); // Add to selected files
+                            const span = document.createElement('span');
+                            span.textContent = fileName;
+                            span.classList.add('file-span'); // Add the file-span class
+                            fileHolder.appendChild(span); // Add filename to file_holder div
+                        })
+                        childNode.on('deselect', (node) => {
+                            const fileName = node.getUserObject();
+                            selectedFiles.delete(fileName); // Remove from selected files
+                            const spans = fileHolder.querySelectorAll('span');
+                            spans.forEach(span => {
+                                if (span.textContent === fileName) {
+                                    span.remove();
+                                }
+                            });
+                        })
                     }
                 });
             }
@@ -104,9 +134,12 @@ function loadDirectory(path) {
             } else {
                 console.error("Error: Root node is null. Check directory structure.");
             }
+
+            treeView.collapseAllNodes();
         } else {
             treeView = new TreeView(root, directoryExplorer);
             treeView.reload();
+            // Collapse all nodes
         }
 
         return data;
