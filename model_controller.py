@@ -206,8 +206,8 @@ class ModelController:
         return self.create_phi_model(
             model_name='phi',
             model_id='phi',
-            model_dir=Path(self.credentials.get('llms', {}).get('phi', {}).get('model_dir', ''),
-                           self.credentials.get('llms', {}).get('phi', {}).get('model_file', ''))
+            model_dir=Path(self.credentials.get('llms', {}).get('Phi', {}).get('model_dir', ''),
+                           self.credentials.get('llms', {}).get('Phi', {}).get('model_file', ''))
         )
 
     def get_llama_model(self) -> LlamaModel | None:

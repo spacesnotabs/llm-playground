@@ -45,7 +45,7 @@ document.getElementById('send-btn').addEventListener('click', function() {
 
     socket.emit('send_message', {
         user_input:message,
-        files_to_modify: [firstFile], // Send first selected file
+        files_to_modify: Array.from(filePaths),
         context_files: Array.from(contextFiles)
     });
 });
@@ -56,8 +56,14 @@ document.getElementById('clear-btn').addEventListener('click', function() {
 });
 
 document.getElementById('start-workflow-btn').addEventListener('click', function() {
-    clearChatBox();
-    socket.emit('start_workflow');
+    const model = document.getElementById('model-select').value;
+    socket.emit('start_workflow', {
+        selected_model: model
+    });
+});
+
+document.getElementById('stop-workflow-btn').addEventListener('click', function() {
+    socket.emit('stop_workflow');
 });
 
 document.getElementById('set-model-btn').addEventListener('click', function() {
@@ -162,69 +168,145 @@ socket.on('model_changed', function(data) {
 });
 
 function displayPrompt(data) {
-    if (data.end === true) {
-        if (currentAgentResponse) {
-            currentAgentResponse.classList.add("complete");
-            console.log(currentAgentResponse.innerHTML);
-            currentText = currentAgentResponse.innerHTML;
-
-            // replace code blocks with correct tags
-            currentText = currentText.replace(/```(\w+)? ([\s\S]*?)```/g, (match, lang, code) => {
-              return `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`;
-            });
-            currentAgentResponse.innerHTML = currentText;
-
-            marked.use({gfm: true, breaks: false});
-            currentAgentResponse.innerHTML = marked.parse(currentText);
-
-            // Apply syntax highlighting
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-            });
-
-            currentAgentResponse = null;
-        }
-    } else {
-        if (data.system == true) {
-            // received a system message
-            systemResponse = document.createElement('div');
-            systemResponse.classList.add("system-message");
-            marked.use({gfm: true, breaks: false});
-            systemResponse.innerHTML = marked.parse(data.response);
-            chatBox.appendChild(systemResponse);
-        } else {
-            if (!currentAgentResponse) {
-                currentAgentResponse = document.createElement('div');
-                currentAgentResponse.classList.add("agent-message");
-                currentAgentResponse.innerHTML = `<span>Agent:</span> `;
-                chatBox.appendChild(currentAgentResponse);
-            }
-
-//            let formattedResponse = marked.parse(data.response);
-//            currentAgentResponse.insertAdjacentHTML('beforeend', formattedResponse);
-            currentAgentResponse.insertAdjacentHTML('beforeend', data.response);
-
-        }
-        // Keep scrolling the chat box down
-        chatBox.scrollTop = chatBox.scrollHeight;
+    if (!currentAgentResponse) {
+        currentAgentResponse = document.createElement('div');
+        currentAgentResponse.classList.add("agent-message");
+        currentAgentResponse.innerHTML = `<span>Agent:</span> `;
+        chatBox.appendChild(currentAgentResponse);
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
-};
 
-// Function to escape HTML characters inside code blocks (for markdown-style)
-function escapeHtml(unsafe) {
-    return unsafe.replace(/[&<"']/g, function (m) {
-        switch (m) {
-            case '&':
-                return '&amp;';
-            case '<':
-                return '&lt;';
-            case '>':
-                return '&gt;';
-            case '"':
-                return '&quot;';
-            case "'":
-                return '&#039;';
-        }
+    let content = data.response;
+
+    // Handle code blocks
+    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        return `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`;
     });
+
+    // Handle inline code
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    // Parse the content as Markdown
+//    content = marked.parse(content);
+
+    // Append the formatted content
+    currentAgentResponse.insertAdjacentHTML('beforeend', content);
+
+    // Apply syntax highlighting to code blocks
+    currentAgentResponse.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+    });
+
+//    if (data.end === true) {
+//        currentAgentResponse.classList.add("complete");
+//        currentAgentResponse = null;
+//    }
+
+    currentAgentResponse = null;
+    // Keep scrolling the chat box down
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+// Helper function to escape HTML special characters
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// function displayPrompt(data) {
+//     if (data.end === true) {
+//        console.log('data.end is true');
+//         if (currentAgentResponse) {
+//             currentAgentResponse.classList.add("complete");
+//             console.log(currentAgentResponse.innerHTML);
+//             currentText = currentAgentResponse.innerHTML;
+//
+//             // replace code blocks with correct tags
+//             currentText = currentText.replace(/```(\w+)? ([\s\S]*?)```/g, (match, lang, code) => {
+//               return `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`;
+//             });
+//             currentAgentResponse.innerHTML = currentText;
+//
+//             marked.use({gfm: true, breaks: false});
+//             currentAgentResponse.innerHTML = marked.parse(currentText);
+//
+//             // Apply syntax highlighting
+//             document.querySelectorAll('pre code').forEach((block) => {
+//                 hljs.highlightElement(block);
+//             });
+//
+//             currentAgentResponse = null;
+//         }
+//     } else {
+//         if (data.system == true) {
+//             // received a system message
+//             systemResponse = document.createElement('div');
+//             systemResponse.classList.add("system-message");
+//             marked.use({gfm: true, breaks: false});
+//             systemResponse.innerHTML = marked.parse(data.response);
+//
+//             chatBox.appendChild(systemResponse);
+//         } else {
+//             if (!currentAgentResponse) {
+//                console.log('Creating currentAgentResponse');
+//                 currentAgentResponse = document.createElement('div');
+//                 currentAgentResponse.classList.add("agent-message");
+//                 currentAgentResponse.innerHTML = `<span>Agent:</span> `;
+//                 chatBox.appendChild(currentAgentResponse);
+//             }
+//
+//             console.log('displayPrompt, data.response: ' + data.response);
+//             currentAgentResponse.insertAdjacentHTML('beforeend', data.response);
+//         }
+//         // Keep scrolling the chat box down
+//         chatBox.scrollTop = chatBox.scrollHeight;
+//     }
+//     chatBox.scrollTop = chatBox.scrollHeight;
+//     console.log('Exiting displayPrompt');
+// };
+
+//// Function to escape HTML characters inside code blocks (for markdown-style)
+//function escapeHtml(unsafe) {
+//    return unsafe.replace(/[&<"']/g, function (m) {
+//        switch (m) {
+//            case '&':
+//                return '&amp;';
+//            case '<':
+//                return '&lt;';
+//            case '>':
+//                return '&gt;';
+//            case '"':
+//                return '&quot;';
+//            case "'":
+//                return '&#039;';
+//        }
+//    });
+//}
+
+document.getElementById('upload-file-btn').addEventListener('click', function() {
+  const fileInput = document.getElementById('file-upload');
+  const file = fileInput.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const fileContent = e.target.result;
+      const fileType = file.type;
+
+      // Check if it's a source code or text file
+      if (fileType.startsWith('text/') || fileType === 'application/javascript' || fileType === 'application/x-python') {
+        socket.emit('upload_file', { fileContent, fileName: file.name });
+      } else {
+        alert('Unsupported file type. Please upload a source code or text file.');
+      }
+    }
+
+    reader.readAsText(file); // Read the file as text
+  } else {
+    alert('Please select a file to upload.');
+  }
+});

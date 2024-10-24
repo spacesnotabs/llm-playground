@@ -30,7 +30,7 @@ class BaseAgent:
         self._agent_state: AgentState = AgentState.IDLE
         self._user_input_thread: Optional[Thread] = None
         self._user_input: Optional[Dict] = None
-        self._send_user_message_callback: Optional[Callable[[str], None]] = None
+        self._status_message_callback: Optional[Callable[[str], None]] = None
 
     @property
     def agent_state(self) -> AgentState:
@@ -96,6 +96,10 @@ class BaseAgent:
         """
         self._user_input = user_input
 
+    def post_message(self, message: str) -> None:
+        if self._status_message_callback:
+            self._status_message_callback(message)
+
     def _wait_for_user_input(self) -> None:
         """
         Waits for user input for a specified timeout.
@@ -117,8 +121,8 @@ class BaseAgent:
 
         :param message: The message to send.
         """
-        if self._send_user_message_callback:
-            self._send_user_message_callback(message)
+        if self._status_message_callback:
+            self._status_message_callback(message)
 
     def validate_input(self, agent_input: Dict, schema: Dict) -> bool:
         """

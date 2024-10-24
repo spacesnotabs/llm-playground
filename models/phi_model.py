@@ -10,8 +10,6 @@ class PhiModel(BaseModel):
     def __init__(self, model_dir: Path, settings: ModelSettings):
         super().__init__(settings=settings)
 
-        print("PhiModel: ", model_dir)
-        print("Settings: ", settings)
         self._model = Llama(model_path=str(model_dir),
                             verbose=False,
                             max_tokens=self._settings.max_tokens,

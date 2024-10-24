@@ -48,11 +48,10 @@ class BaseModel:
         :param conversation: new Conversation object
         :return: None
         """
-        if not self._conversation:
-            self._conversation = conversation
-        else:
+        if self._conversation:
             self._conversation.save_conversation(self._settings.model_name)
-            self._conversation = Conversation()
+
+        self._conversation = conversation
 
     def set_callback(self, func) -> None:
         self._response_callback = func
@@ -74,5 +73,12 @@ class BaseModel:
         """
         self.conversation.clear_conversation(save=True)
 
+    def post_message(self, message: str) -> None:
+        if self._response_callback:
+            self._response_callback(message)
+
     def _create_conversation(self) -> None:
         self.conversation = Conversation()
+
+    def continue_conversation(self, conversation: Conversation):
+        pass
