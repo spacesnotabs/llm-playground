@@ -37,8 +37,6 @@ class CodingAgent(BaseAgent):
             llm (BaseModel): The language model to use for code generation.
         """
         super().__init__(name="Coding Agent", llm=llm)
-        self._change_summary = []
-        self._last_good_output = {}
 
     def run_agent(self, agent_input: dict) -> dict:
         """
@@ -74,9 +72,10 @@ class CodingAgent(BaseAgent):
         # Finally, add the user's request
         prompt += agent_input["user_input"].strip()
 
-        modified_code = self._llm.send_message(prompt)
+        self.post_message(message="Processing request...")
+        modified_code = self.llm.send_message(prompt)
         modified_code = extract_content(modified_code)
-        agent_summary = self._llm.send_message("Please provide a summary of the changes you made.")
+        agent_summary = self.llm.send_message("Please provide a summary of the changes you made.")
 
         diff = ''
         if agent_input.get('code_to_modify', None):

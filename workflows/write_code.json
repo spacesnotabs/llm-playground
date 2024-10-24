@@ -39,14 +39,14 @@
           "agent": "code_agent",
           "description": "Software agent writes or modifies the code.",
           "input": ["code_to_modify", "context", "user_input"],
-          "output": ["modified_code","agent_summary"],
+          "output": ["modified_code", "diff", "agent_summary"],
           "next_step": 5
         },
         {
           "id": 5,
           "type": "user_input",
           "description": "User confirms or modifies the code",
-          "prepend": ["modified_code","agent_summary"],
+          "prepend": ["diff","agent_summary"],
           "input": {
             "prompt": "Would you like to proceed with the changes? Yes/No: "
           },
@@ -55,16 +55,17 @@
             "on_success": 6,
             "on_failure": 3
           }
+        },
+        {
+          "id": 6,
+          "type": "system_action",
+          "agent": "file_write",
+          "description": "Write the file",
+          "input": ["code_to_modify", "filepath"],
+          "output": ["result_of_write"],
+          "next-step": 3
         }
       ]
-    },
-    {
-      "id": 6,
-      "type": "system_action",
-      "agent": "file_write",
-      "description": "Write the file",
-      "input": ["code_to_modify", "files_to_modify"],
-      "output": ["result_of_write"]
     }
   ]
 }
