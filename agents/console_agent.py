@@ -68,7 +68,6 @@ class ConsoleAgent(BaseAgent):
         analysis = self.llm.send_message(prompt)
         analysis = extract_content(analysis)
 
-        print("Analysis from console_agent: ", analysis)
         try:
             # Convert string response to dictionary if needed
             if isinstance(analysis, str):

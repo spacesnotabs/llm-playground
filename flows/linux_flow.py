@@ -4,6 +4,8 @@ from agents.linux_op_agent import LinuxOpAgent
 from agents.console_agent import ConsoleAgent
 from models.base_model import BaseModel
 from time import sleep
+import logging
+from datetime import datetime
 
 
 class LinuxFlow:
@@ -18,6 +20,15 @@ class LinuxFlow:
         self.linux_agent = LinuxOpAgent(llm_linux)
         self.console_agent = ConsoleAgent(llm_console)
         
+        # Setup logging
+        log_filename = f"linux_flow_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        logging.basicConfig(
+            filename=log_filename,
+            level=logging.INFO,
+            format='%(asctime)s - %(message)s'
+        )
+        self.logger = logging.getLogger(__name__)
+        
     def _execute_command(self, command: str) -> tuple[str, str, int]:
         """
         Execute a single Linux command and return its output.
@@ -29,17 +40,47 @@ class LinuxFlow:
             tuple: (stdout, stderr, return_code)
         """
         try:
+            self.logger.info(f"Executing command: {command}")
             process = subprocess.Popen(
                 command,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                text=True
+                text=True,
+                bufsize=1,
+                universal_newlines=True
             )
-            stdout, stderr = process.communicate()
-            return stdout, stderr, process.returncode
+            
+            stdout_data = []
+            stderr_data = []
+            
+            while True:
+                stdout_line = process.stdout.readline()
+                stderr_line = process.stderr.readline()
+                
+                if stdout_line:
+                    line = f"OUT: {stdout_line.strip()}"
+                    print(line)
+                    self.logger.info(line)
+                    stdout_data.append(stdout_line)
+                    
+                if stderr_line:
+                    line = f"ERR: {stderr_line.strip()}"
+                    print(line)
+                    self.logger.error(line)
+                    stderr_data.append(stderr_line)
+                    
+                if process.poll() is not None:
+                    break
+            
+            return_code = process.returncode
+            self.logger.info(f"Command completed with return code: {return_code}")
+            return ''.join(stdout_data), ''.join(stderr_data), return_code
+            
         except Exception as e:
-            return "", str(e), 1
+            error_msg = str(e)
+            self.logger.error(f"Exception during command execution: {error_msg}")
+            return '', error_msg, 1
 
     def _process_command_result(self, stdout: str, stderr: str, return_code: int) -> Dict:
         """
@@ -79,7 +120,6 @@ class LinuxFlow:
                 "error_feedback": error_feedback
             })
             
-            print("\nLinux Operator Agent response: ", agent_response)
             sleep(2)
 
             if "error" in agent_response:
