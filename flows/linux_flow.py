@@ -19,9 +19,10 @@ class LinuxFlow:
         """
         self.linux_agent = LinuxOpAgent(llm_linux)
         self.console_agent = ConsoleAgent(llm_console)
+        self.command_history: list[str] = []
         
         # Setup logging
-        log_filename = f"linux_flow_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        log_filename = f"logs/linux_flow_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         logging.basicConfig(
             filename=log_filename,
             level=logging.INFO,
@@ -120,8 +121,6 @@ class LinuxFlow:
                 "error_feedback": error_feedback
             })
             
-            sleep(2)
-
             if "error" in agent_response:
                 print(f"Error in Linux agent: {agent_response['error']}")
                 break
@@ -133,6 +132,8 @@ class LinuxFlow:
                 command = cmd_info["command"]
                 purpose = cmd_info["purpose"]
                 
+                self.command_history.append(command)
+
                 print(f"\nExecuting: {command}")
                 print(f"Purpose: {purpose}")
                 
@@ -163,3 +164,16 @@ class LinuxFlow:
                 break
             
             print("\nRetrying with error feedback...")
+
+        # Output results
+        print("Requested task: ", task)
+        self.output_command_history() 
+        self.command_history.clear()
+
+    def output_command_history(self) -> None:
+        """
+        Output the command history to the console.
+        """
+        print("\nCommand History:")
+        for i, command in enumerate(self.command_history, start=1):
+            print(f"{i}. {command}")
