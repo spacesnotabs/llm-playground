@@ -3,18 +3,20 @@ from typing import List, Dict
 from agents.linux_op_agent import LinuxOpAgent
 from agents.console_agent import ConsoleAgent
 from models.base_model import BaseModel
+from time import sleep
 
 
 class LinuxFlow:
-    def __init__(self, llm: BaseModel):
+    def __init__(self, llm_linux: BaseModel, llm_console: BaseModel):
         """
         Initialize the Linux command execution flow.
 
         Args:
-            llm (BaseModel): Language model instance to be used by the agents
+            llm_linux (BaseModel): Language model instance for Linux commands
+            llm_console (BaseModel): Language model instance for console analysis
         """
-        self.linux_agent = LinuxOpAgent(llm)
-        self.console_agent = ConsoleAgent(llm)
+        self.linux_agent = LinuxOpAgent(llm_linux)
+        self.console_agent = ConsoleAgent(llm_console)
         
     def _execute_command(self, command: str) -> tuple[str, str, int]:
         """
@@ -77,6 +79,9 @@ class LinuxFlow:
                 "error_feedback": error_feedback
             })
             
+            print("\nLinux Operator Agent response: ", agent_response)
+            sleep(2)
+
             if "error" in agent_response:
                 print(f"Error in Linux agent: {agent_response['error']}")
                 break
@@ -110,6 +115,7 @@ class LinuxFlow:
                     break
                 
                 error_feedback = None
+                sleep(2)
             
             # If no error feedback, we're done
             if not error_feedback:

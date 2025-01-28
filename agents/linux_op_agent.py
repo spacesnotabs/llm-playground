@@ -11,7 +11,7 @@ class LinuxOpAgent(BaseAgent):
         "type": "object",
         "properties": {
             "task": {"type": "string"},
-            "error_feedback": {"type": "string", "default": None}
+            "error_feedback": {"type": ["string", "null"], "default": None}
         },
         "required": ["task"]
     }
