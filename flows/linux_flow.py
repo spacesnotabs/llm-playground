@@ -35,6 +35,23 @@ class LinuxFlow:
         self.history_dir = "history"
         os.makedirs(self.history_dir, exist_ok=True)
         
+        self.interactive_commands = {
+            'nano': 'echo or tee',
+            'vim': 'echo or tee', 
+            'vi': 'echo or tee',
+            'less': 'cat',
+            'more': 'cat',
+            'top': 'ps',
+            'htop': 'ps',
+        }
+
+    def _is_interactive_command(self, command: str) -> tuple[bool, str]:
+        """Check if command is interactive and return alternative."""
+        base_cmd = command.split()[0]
+        if base_cmd in self.interactive_commands:
+            return True, self.interactive_commands[base_cmd]
+        return False, ""
+
     def _execute_command(self, command: str) -> tuple[str, str, int]:
         """
         Execute a single Linux command and return its output.
@@ -45,6 +62,13 @@ class LinuxFlow:
         Returns:
             tuple: (stdout, stderr, return_code)
         """
+        is_interactive, alternative = self._is_interactive_command(command)
+        
+        if is_interactive:
+            error_msg = f"Interactive command '{command}' not supported. Try using {alternative} instead."
+            self.logger.warning(error_msg)
+            return "", error_msg, 1
+
         try:
             self.logger.info(f"Executing command: {command}")
             process = subprocess.Popen(
