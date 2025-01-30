@@ -2,8 +2,24 @@ import json
 from model_controller import ModelController
 from flows.linux_flow import LinuxFlow
 from utils.utils import load_prompt
+import argparse
+
+def run_interactive_mode(linux_flow):
+    """Run the Linux operator in interactive mode."""
+    print("\nEntering interactive mode (type 'exit' to quit)")
+    while True:
+        task = input("\nEnter Linux task (or 'exit' to quit): ").strip()
+        if task.lower() == 'exit':
+            break
+        linux_flow.run(task)
 
 def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description='Linux Operation Assistant')
+    parser.add_argument('-t', '--task', help='Linux task to execute')
+    parser.add_argument('-i', '--interactive', action='store_true', help='Run in interactive mode')
+    args = parser.parse_args()
+
     # Load configuration
     with open("credentials.json") as f:
         config = json.load(f)
@@ -37,12 +53,12 @@ def main():
     # Create and run Linux flow with both LLM instances
     linux_flow = LinuxFlow(llm_linux=llm_linux, llm_console=llm_console)
     
-    while True:
-        task = input("\nEnter Linux task (or 'exit' to quit): ").strip()
-        if task.lower() == 'exit':
-            break
-            
-        linux_flow.run(task)
+    if args.task:
+        # Execute single task mode
+        linux_flow.run(args.task)
+    else:
+        # Run interactive mode if no task provided or -i flag is set
+        run_interactive_mode(linux_flow)
 
 if __name__ == "__main__":
     main()
