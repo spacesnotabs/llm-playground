@@ -1,4 +1,7 @@
 import subprocess
+import json
+import os
+from datetime import datetime
 from typing import List, Dict
 from agents.linux_op_agent import LinuxOpAgent
 from agents.console_agent import ConsoleAgent
@@ -15,6 +18,8 @@ class LinuxFlow:
         """
         self.linux_agent = LinuxOpAgent(llm)
         self.console_agent = ConsoleAgent(llm)
+        self.history_dir = "history"
+        os.makedirs(self.history_dir, exist_ok=True)
         
     def _execute_command(self, command: str) -> tuple[str, str, int]:
         """
@@ -60,6 +65,18 @@ class LinuxFlow:
             "context": f"Return code: {return_code}"
         })
 
+    def _generate_history_filename(self) -> str:
+        """Generate a unique filename for the session history."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return os.path.join(self.history_dir, f"session_{timestamp}.json")
+
+    def _save_session_history(self, history_data: Dict) -> None:
+        """Save session history to a JSON file."""
+        filename = self._generate_history_filename()
+        with open(filename, 'w') as f:
+            json.dump(history_data, f, indent=2)
+        print(f"\nSession history saved to: {filename}")
+
     def run(self, task: str) -> None:
         """
         Run the Linux command flow.
@@ -69,6 +86,11 @@ class LinuxFlow:
         """
         print(f"\nStarting Linux task: {task}")
         error_feedback = None
+        session_history = {
+            "task": task,
+            "commands": [],
+            "timestamp": datetime.now().isoformat()
+        }
         
         while True:
             # Get commands from LinuxOpAgent
@@ -78,6 +100,8 @@ class LinuxFlow:
             })
             
             if "error" in agent_response:
+                session_history["error"] = agent_response["error"]
+                self._save_session_history(session_history)
                 print(f"Error in Linux agent: {agent_response['error']}")
                 break
 
@@ -96,6 +120,19 @@ class LinuxFlow:
                 # Analyze command output
                 analysis = self._process_command_result(stdout, stderr, return_code)
                 
+                # Record command execution in session history
+                command_record = {
+                    "command": command,
+                    "purpose": purpose,
+                    "status": analysis.get("status"),
+                    "summary": analysis.get("summary"),
+                    "return_code": return_code,
+                    "timestamp": datetime.now().isoformat()
+                }
+                if "error" in analysis:
+                    command_record["error"] = analysis["error"]
+                session_history["commands"].append(command_record)
+                
                 if "error" in analysis:
                     print(f"Error analyzing output: {analysis['error']}")
                     continue
@@ -113,6 +150,8 @@ class LinuxFlow:
             
             # If no error feedback, we're done
             if not error_feedback:
+                session_history["status"] = "completed"
+                self._save_session_history(session_history)
                 print("\nTask completed successfully!")
                 break
             
