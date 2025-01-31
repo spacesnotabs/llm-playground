@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from basicmessage import BasicMessage
+from models.basicmessage import BasicMessage
 
 SYSTEM_ROLE = "system"
 USER_ROLE = "user"

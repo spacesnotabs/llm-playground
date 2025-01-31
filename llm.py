@@ -6,7 +6,7 @@ from agents.chat_agent import ChatAgent
 from agents.code_review_agent import CodeReviewAgent
 from agents.sw_architect import SWArchitect
 from agents.coding_agent import CodingAgent
-from model_controller import ModelController
+from models.model_controller import ModelController
 from utils.utils import extract_content, load_prompt
 from workflows.workflow_controller import WorkflowController
 

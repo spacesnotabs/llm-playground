@@ -2,7 +2,7 @@ from pathlib import Path
 
 from google.ai.generativelanguage_v1 import Content, Part
 
-from conversation import Conversation
+from models.conversation import Conversation
 from .base_model import BaseModel
 from .model_settings import ModelSettings
 

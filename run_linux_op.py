@@ -1,5 +1,5 @@
 import json
-from model_controller import ModelController
+from models.model_controller import ModelController
 from flows.linux_flow import LinuxFlow
 from utils.utils import load_prompt
 import argparse

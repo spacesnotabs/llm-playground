@@ -1,7 +1,7 @@
 from threading import Thread
 
 from .model_settings import ModelSettings
-from conversation import Conversation
+from models.conversation import Conversation
 
 
 class BaseModel:

@@ -7,7 +7,7 @@ from agents.base_agent import BaseAgent
 from agents.chat_agent import ChatAgent
 from agents.coding_agent import CodingAgent
 from workflows.workflow_controller import WorkflowController
-from model_controller import ModelController
+from models.model_controller import ModelController
 from models.base_model import BaseModel
 from utils.utils import load_prompt
 
