@@ -21,15 +21,15 @@ def main():
     args = parser.parse_args()
 
     # Load configuration
-    with open("credentials.json") as f:
+    with open("credentials/credentials.json") as f:
         config = json.load(f)
     
     # Get API key
     gemini_api = config['llms']['Gemini']['api_key']
     
     # Load both prompts
-    linux_op_prompt = load_prompt(yaml_file='prompts.yaml', prompt_name='linux_operator')
-    console_analyzer_prompt = load_prompt(yaml_file='prompts.yaml', prompt_name='console_analyzer')
+    linux_op_prompt = load_prompt(yaml_file='agents/prompts.yaml', prompt_name='linux_operator')
+    console_analyzer_prompt = load_prompt(yaml_file='agents/prompts.yaml', prompt_name='console_analyzer')
     
     print("Loading Gemini models...")
     

@@ -10,7 +10,7 @@ import google.generativeai as genai
 
 
 class GeminiModel(BaseModel):
-    MODEL_FLASH = "gemini-1.5-flash"
+    MODEL_FLASH = "gemini-2.0-flash"
     MODEL_PRO = "gemini-1.5-pro"
 
     def __init__(self, settings: ModelSettings):
