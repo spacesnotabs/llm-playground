@@ -4,8 +4,8 @@ history/
 logs/
 local_models/
 scripts/
+workflows/
 __pycache__/
 credentials/
 conversations/
-workflows/
 *code-workspace

@@ -52,60 +52,34 @@ class LinuxFlow:
             return True, self.interactive_commands[base_cmd]
         return False, ""
 
-    def _execute_command(self, command: str) -> tuple[str, str, int]:
-        """
-        Execute a single Linux command and return its output.
-
-        Args:
-            command (str): The command to execute
-
-        Returns:
-            tuple: (stdout, stderr, return_code)
-        """
-        is_interactive, alternative = self._is_interactive_command(command)
-        
-        if is_interactive:
-            error_msg = f"Interactive command '{command}' not supported. Try using {alternative} instead."
-            self.logger.warning(error_msg)
-            return "", error_msg, 1
-
+    def execute_command(self, command: str) -> Dict:
         try:
-            self.logger.info(f"Executing command: {command}")
             process = subprocess.Popen(
                 command,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                bufsize=1,
                 universal_newlines=True
             )
             
-            stdout_data = []
-            stderr_data = []
+            stdout_data, stderr_data = process.communicate()
             
-            while True:
-                stdout_line = process.stdout.readline()
-                stderr_line = process.stderr.readline()
+            # Process stdout
+            for line in stdout_data.splitlines():
+                output = f"{  line.strip()}"
+                print(output, flush=True)
+                self.logger.info(output)
                 
-                if stdout_line:
-                    line = f"OUT: {stdout_line.strip()}"
-                    print(line)
-                    self.logger.info(line)
-                    stdout_data.append(stdout_line)
-                    
-                if stderr_line:
-                    line = f"ERR: {stderr_line.strip()}"
-                    print(line)
-                    self.logger.error(line)
-                    stderr_data.append(stderr_line)
-                    
-                if process.poll() is not None:
-                    break
+            # Process stderr
+            for line in stderr_data.splitlines():
+                error = f" {line.strip()}"
+                print(error, flush=True)
+                self.logger.error(error)
             
             return_code = process.returncode
             self.logger.info(f"Command completed with return code: {return_code}")
-            return ''.join(stdout_data), ''.join(stderr_data), return_code
+            return stdout_data, stderr_data, return_code
             
         except Exception as e:
             error_msg = str(e)
@@ -164,7 +138,8 @@ class LinuxFlow:
             # Get commands from LinuxOpAgent
             agent_response = self.linux_agent.run_agent({
                 "task": task,
-                "error_feedback": error_feedback
+                "error_feedback": error_feedback,
+                "command_history": "\n".join(self.command_history)
             })
             
             if "error" in agent_response:
@@ -185,7 +160,7 @@ class LinuxFlow:
                 print(f"\nExecuting: {command}")
                 print(f"Purpose: {purpose}")
                 
-                stdout, stderr, return_code = self._execute_command(command)
+                stdout, stderr, return_code = self.execute_command(command)
                 
                 # Analyze command output
                 analysis = self._process_command_result(stdout, stderr, return_code)

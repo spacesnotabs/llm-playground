@@ -11,7 +11,8 @@ class LinuxOpAgent(BaseAgent):
         "type": "object",
         "properties": {
             "task": {"type": "string"},
-            "error_feedback": {"type": ["string", "null"], "default": None}
+            "error_feedback": {"type": ["string", "null"], "default": None},
+            "command_history": {"type": ["string", "null"], "default": None}
         },
         "required": ["task"]
     }
@@ -70,6 +71,10 @@ class LinuxOpAgent(BaseAgent):
         if agent_input.get("error_feedback"):
             prompt += f"Previous Error: {agent_input['error_feedback'].strip()}\n"
             prompt += "Please provide updated commands that address this error."
+
+        # Don't repeat commands that have already been run
+        if agent_input.get("command_history"):
+            prompt += f"These commands have already been run: {agent_input['command_history'].strip()}\n"
 
         self.post_message(message="Generating Linux commands...")
         response = self.llm.send_message(prompt)
