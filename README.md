@@ -1,61 +1,68 @@
 # LLM Playground
 
-This Python application is meant to serve as a tool to facilitate using local and remote LLMs (via APIs) to automate a variety of tasks. These include generating software applications from a simple description, writing and reviewing code, and engaging in natural conversations.
+This Python application leverages LLMs to automate system operations and development tasks. While several features are under development, the Linux operator functionality is more thoroughly tested and fun to use!  I do recommend doing it in a virtual Linux environment.
 
 ## Key Features
 
-- **Application Building Mode:**  Takes a user's description and generates a basic file structure and code for a new application.  Very early in development so expect small apps with some bugs, but provides a decent framework. 
-- **Code Mode:**  Allows users to provide instructions to modify existing code files.
-- **Chat Mode:** Enables open-ended conversations with the application, leveraging the LLM's ability to understand and generate human-like text.
+- **Linux Operator (Production Ready):** Automates Linux system operations through natural language commands, leveraging LLMs to interpret instructions and execute appropriate system commands.
+- **Application Building Mode (In Development):** Takes a user's description and generates basic application scaffolding.
+- **Code Mode (In Development):** Assists with code modifications and reviews.
+- **Chat Mode (In Development):** Enables general-purpose LLM interactions.
 
 ## Usage
-In order to use APIs and local LLMs, create a `credentials.json` file in the root directory which should look similar to this:
+
+### Setup
+1. Create a `credentials.json` file in the `credentials` directory:
 ```json
 {
   "llms": {
     "openai": {
-      "api_key": "123-456-7890",
+      "api_key": "your-api-key-here",
       "org_id": ""
     },
     "anthropic": {
-      "api_key": "sk-abcdefghijklmnop"
-    },
-    "gemini": {
-      "api_key": "Ba398Fj390Jlakj"
-    },
-    "mistral": {
-      "model_dir": "C:\\Users\\UserName\\models\\mistral_models\\Mistral-7B-Instruct-v0.3-GGUF",
-      "model_file": "Mistral-7B-Instruct-v0.3.Q4_K_M.gguf"
+      "api_key": "your-anthropic-key"
     }
-  },
-
+  }
+}
 ```
-To run the web application, simply run the following
-  ```bash
-  python app.py
-  ```
 
-The CLI verion of the application offers three distinct modes of operation:
+2. Run the Linux operator:
+```bash
+usage: run_linux_op.py [-h] [-t TASK] [-i]
 
-- **Build App Mode:**  
-  ```bash
-  python llm.py --mode build_app_mode
-  ```
+Linux Operation Assistant
 
-- **Code Mode:**
-  ```bash
-  python llm.py --mode code_mode
-  ```
+options:
+  -h, --help            show this help message and exit
+  -t TASK, --task TASK  Linux task to execute
+  -i, --interactive     Run in interactive mode
+```
 
-- **Chat Mode:**
-  ```bash
-  python llm.py --mode chat_mode
-  ```
+The Linux operator accepts natural language instructions like:
+- "Find all Python files modified in the last 24 hours"
+- "Show me the disk usage in the current directory"
+- "List all processes using more than 1GB of memory"
+
+### Other Modes (In Development)
+Additional functionality is available but still under development:
+
+```bash
+python llm.py --mode build_app_mode  # Application generation
+python llm.py --mode code_mode       # Code modification
+python llm.py --mode chat_mode       # General conversation
+```
+
+A prototype web interface is also available (early development stage):
+```bash
+python app.py
+```
 
 ## Future Improvements
 
-- Integrate with additional LLM providers and models to expand capabilities and offer more choices.
-- Enhance the user interface for a more intuitive and user-friendly experience.
-- Develop new agent types and functionalities to further broaden the application's skillset.
-- Improve error handling and overall system robustness for a smoother user experience.
+- Expand Linux operator capabilities with more sophisticated command patterns
+- Add support for automated system maintenance tasks
+- Develop safety frameworks for system operations
+- Complete development of application building and code modification features
+- Enhance the web interface with full Linux operator support
 
