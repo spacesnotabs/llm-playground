@@ -226,6 +226,24 @@ def get_directory_contents():
     contents = build_directory_tree(os.path.abspath(directory), top_level=True)
     return jsonify(contents)
 
+def get_flow_files(path: str = "flows") -> list[str]:
+    """
+    Get all files in the flow directory
+    """
+    try:
+        return [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    except Exception as e:
+        print(f"Error getting flow files: {e}")
+        return []
+
+@app.route("/get_flows", methods=["POST"])
+def get_flows():
+    """
+    Returns the names of the files in the flows directory
+    """
+    flow_files = get_flow_files()
+    return jsonify(flow_files)
+
 # @app.route("/set_agent", methods=["POST"])
 # def set_agent():
 #     global active_agent
@@ -325,7 +343,27 @@ def start_workflow(data: dict):
         agent = agent_manager.get_active_agent()
         agent._status_message_callback = post_llm_update
         workflow_controller.set_agent(agent)
-        workflow_controller.load_workflow('code_flow')
+        #workflow_controller.load_workflow('code_flow')
+        #workflow_controller.start_workflow()
+        
+@socketio.on('select_workflow')
+def select_workflow(data: dict):
+    """
+    Starts the selected workflow.
+    """
+    global workflow_controller
+    print("Workflow starting", data)
+
+    selected_model = data['selected_model']
+    selected_workflow = data['selected_workflow']
+
+    if workflow_controller:
+        post_system_update(text='Starting Workflow: ' + selected_workflow)
+        model_manager.set_active_model(model_name=selected_model, system_prompt=write_code_prompt)
+        agent = agent_manager.get_active_agent()
+        agent._status_message_callback = post_llm_update
+        workflow_controller.set_agent(agent)
+        workflow_controller.load_workflow(selected_workflow)
         workflow_controller.start_workflow()
 
 @socketio.on('stop_workflow')

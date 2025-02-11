@@ -81,8 +81,61 @@ document.getElementById('load-directory-btn').addEventListener('click', function
     loadDirectory(directoryPath);
 });
 
+document.getElementById('select-flow-btn').addEventListener('click', function() {
+    console.log("select flow button clicked");
+    fetchFlows();
+});
+
 function loadDirectory(path) {
     return fetch('/get_directory_contents', {
+    
+function fetchFlows() {
+    fetch('/get_flows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return null;
+        }
+        console.log(data);
+        const flowsContainer = document.getElementById('flows-container');
+        flowsContainer.innerHTML = '';
+        data.forEach(flow => {
+            const flowButton = document.createElement('button');
+            flowButton.textContent = flow;
+            flowButton.classList.add('flow-button');
+            flowButton.addEventListener('click', function() {
+                selectFlow(flow);
+            });
+            flowsContainer.appendChild(flowButton);
+        });
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        return null;
+    });
+}
+
+function selectFlow(flow) {
+    console.log("selected flow: ", flow);
+    const model = document.getElementById('model-select').value;
+    socket.emit('select_workflow', {
+        selected_model: model,
+        selected_workflow: flow.replace(".py","")
+    });
+}
+document.getElementById('start-workflow-btn').addEventListener('click', function() {
+    const model = document.getElementById('model-select').value;
+    const flow = document.getElementById('workflow-select').value;
+    console.log("starting workflow " + flow);
+    socket.emit('select_workflow', {
+        selected_model: model,
+        selected_workflow: flow
+    });
+});
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ directory: path })
